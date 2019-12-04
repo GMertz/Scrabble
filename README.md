@@ -2,6 +2,9 @@
 
 ## Word files goes into a trie
 * Can then pass in possible combos to check if they're valid in linear time
+* root is null
+* check if the first letter of the word is a child
+* if not, create child(ren)
 ## Find the playable spaces
 * Iterate through entire board to find each filled space
 * Save locations and values of each filled space
