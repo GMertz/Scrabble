@@ -18,6 +18,22 @@ public class Player implements ScrabbleAI
 
     @Override
     public ScrabbleMove chooseMove() {
+
+        /** Get valid spaces + save
+         * anagram
+         */
         return null;
     }
+
+    private boolean letterIsValid(char c, Location l, Location direction)
+    {
+        return false;
+    }
+
+    public void getOpenSpaces ()
+    {
+
+    }
+
 }
+
