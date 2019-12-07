@@ -7,7 +7,7 @@ public class Player implements ScrabbleAI
     public Player()
     {
         In infile = new In("enable1.txt");
-        trie = new Trie(DICTIONARY.infile);
+        trie = new Trie(infile);
     }
 
     @Override
@@ -23,6 +23,7 @@ public class Player implements ScrabbleAI
          * anagram
          */
         return null;
+
     }
 
     private boolean letterIsValid(char c, Location l, Location direction)

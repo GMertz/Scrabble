@@ -16,7 +16,7 @@ class TrieTest
     @BeforeEach
     void setup()
     {
-        In in = new In("enable.txt");
+        In in = new In("enable1.txt");
         DICTIONARY = new HashSet<>();
         trie = new Trie();
         board = new Board();
@@ -34,7 +34,6 @@ class TrieTest
     @Test
     void FindWordFindsValidWord()
     {
-
         trie = new Trie(new In("enable1.txt"));
         //assertTrue(board.isValidWord(trie.FindWord()));
     }

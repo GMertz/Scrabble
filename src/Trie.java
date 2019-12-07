@@ -1,3 +1,6 @@
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
 import java.util.concurrent.Callable;
 
 public class Trie
@@ -19,15 +22,9 @@ public class Trie
         }
     }
 
-    public int CharToInt(char c)
-    {
-        return c < 'a' ? c-'A' : c-'a';
-    }
+    public int CharToInt(char c) { return c < 'a' ? c-'A' : c-'a'; }
 
-    public void insert(String s)
-    {
-        insertHelp(s,0, head);
-    }
+    public void insert(String s) { insertHelp(s,0, head); }
 
     public boolean contains(String s)
     {
@@ -44,7 +41,6 @@ public class Trie
         }
         return trav.isWord;
     }
-
 
     // Find the best word given the world template and the tileDescriptor
     public String FindWord(String template, String tileDescriptor)
@@ -70,11 +66,6 @@ public class Trie
         return n;
     }
 
-    public void AStarSearch(int v, Callable<Character> h)
-    {
-
-    }
-
     private class Node
     {
         char c;
@@ -86,5 +77,4 @@ public class Trie
             children = new Node[26]; // one slot for each english letter
         }
     }
-
 }
