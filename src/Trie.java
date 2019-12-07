@@ -7,12 +7,42 @@ public class Trie
 
     public Trie()
     {
-        head = new Node('\0',0);
+        head = new Node('\0');
+    }
+
+    public Trie(In inFile)
+    {
+        head = new Node('\0');
+        for (String line : inFile.readAllLines())
+        {
+            insert(inFile.readLine());
+        }
+    }
+
+    public int CharToInt(char c)
+    {
+        return c < 'a' ? c-'A' : c-'a';
     }
 
     public void insert(String s)
     {
-        //Board.TILE_VALUES.get(s.charAt(0));
+        insertHelp(s,0, head);
+    }
+
+    public boolean contains(String s)
+    {
+        Node trav = head;
+        for (int i = 0; i < s.length(); i++)
+        {
+            int c = CharToInt(s.charAt(i));
+
+            if(trav.children[c] == null)
+            {
+                return false;
+            }
+            trav = trav.children[c];
+        }
+        return trav.isWord;
     }
 
 
@@ -22,28 +52,22 @@ public class Trie
         return new String();
     }
 
-    private Node insertHelp(String s, int ind, Node n, int score)
+    private Node insertHelp(String s, int ind, Node n)
     {
-        int letter = s.charAt(ind)-'a';
-        score += Board.TILE_VALUES.get(letter);
-
-        if(n.children[letter] != null)
+        if(ind == s.length() && n.c == s.charAt(s.length()-1))
         {
-            n.children[letter] = insertHelp(s,ind+1, n.children[letter], score);
-            return n;
+            n.isWord = true;
         }
         else
         {
-            Node restOfWord = new Node(s.charAt(ind), score);
-            Node trav = restOfWord;
-            for (int i = ind+1; i < s.length(); i++)
+            int letter = CharToInt(s.charAt(ind));
+            if (n.children[letter] == null)
             {
-                letter = s.charAt(ind)-'a';
-                score += Board.TILE_VALUES.get(letter);
-                trav.children[letter] = new Node(s.charAt(ind), score);
+                n.children[letter] = new Node(s.charAt(ind));
             }
-            return restOfWord;
+            n.children[letter] = insertHelp(s, ind + 1, n.children[letter]);
         }
+        return n;
     }
 
     public void AStarSearch(int v, Callable<Character> h)
@@ -54,12 +78,11 @@ public class Trie
     private class Node
     {
         char c;
-        int wordScore;
+        boolean isWord;
         Node[] children;
-        public Node(char c, int wordScore)
+        public Node(char c)
         {
             this.c = c;
-            this.wordScore = wordScore;
             children = new Node[26]; // one slot for each english letter
         }
     }

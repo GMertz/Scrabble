@@ -3,9 +3,11 @@ import java.util.ArrayList;
 public class Player implements ScrabbleAI
 {
 
-    public static void main(String[] args)
+    Trie trie;
+    public Player()
     {
-
+        In infile = new In("enable1.txt");
+        trie = new Trie(DICTIONARY.infile);
     }
 
     @Override

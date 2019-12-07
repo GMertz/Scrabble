@@ -2,4 +2,6 @@
 enable1.txt
 *.iml
 stdlib.jar
+_config.yml
+out
 
