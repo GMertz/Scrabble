@@ -10,6 +10,6 @@ class AStarSearchTest
     void setup()
     {
         trie = new Trie(new In("enable.txt"));
-        ass = new AStarSearch();
+        //ass = new AStarSearch();
     }
 }
