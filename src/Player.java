@@ -2,29 +2,30 @@ import java.util.*;
 
 public class Player implements ScrabbleAI
 {
-
-    private Trie trie;
     private GateKeeper gateKeeper;
     private ArrayList<Character> hand;
     private int handSize;
+    private Searcher searcher;
+
     public Player()
     {
-        In infile = new In("enable1.txt");
-        trie = new Trie(infile);
+        searcher = new Searcher(new Eval());
     }
 
     @Override
     public void setGateKeeper(GateKeeper gateKeeper)
     {
         this.gateKeeper = gateKeeper;
-        hand = gateKeeper.getHand();
-        handSize = hand.size();
     }
 
     @Override
     public ScrabbleMove chooseMove()
     {
+        HashSet<Location> validSpots = new HashSet<>(Board.WIDTH*Board.WIDTH);
+
         hand = gateKeeper.getHand();
+        handSize = hand.size();
+
         String template;
 
         PriorityQueue<MoveChoice> maxHeap = new PriorityQueue<MoveChoice>();
@@ -48,7 +49,7 @@ public class Player implements ScrabbleAI
                     int templateStart = 0;
 
                     {// initialize window
-                        for (int i = 0; i < windowSize; i++)
+                        for (int i = 0; i < windowSize-1; i++)
                         {
                             if(direction == Location.VERTICAL) square = new Location(i,j);
                             else square = new Location(j,i);
@@ -57,19 +58,51 @@ public class Player implements ScrabbleAI
                         }
                     }
 
+                    // May be an ISSUE
                     for (int k = 0; k < Board.WIDTH-windowSize; k++)
                     {
-                        if(direction == Location.VERTICAL) square = new Location(k,j);
-                        else square = new Location(j,k);
+                        // index for placing the next letter into our wrapping window
+                        int p = ((windowSize-1)+templateStart) % windowSize;
+
+
+                        if(direction == Location.VERTICAL) square = new Location(j,k);
+                        else square = new Location(k,j);
+                        char c = gateKeeper.getSquare(square);
+
+                        window[p] = isLetter(c) ? c : ' ';
+
+                        boolean flag = false;
+                        for (int i = 0; i < windowSize; i++)
+                        {
+                            Location l;
+                            if(direction == Location.VERTICAL) l = new Location(j,k+i);
+                            else l = new Location(k+i,j);
+
+                            if (validSpots.contains(l))
+                            {
+                                flag = true;
+                                break;
+                            }
+                            else if(isAdjacent(l))
+                            {
+                                validSpots.add(l);
+                                break;
+                            }
+                        }
+                        if(!flag) continue;
+                        String temp = buildTemplate(window,templateStart);
+                        maxHeap.add(searcher.search(temp,hand.toString()));
+
+
                         // put this square at the location behind templateStart
 
-                        // Create template string from templateCharacters then perform AStarSearch on it
+                        // Create template string from templateCharacters then perform Searcher on it
 
-                        //AStarSearch search = new AStarSearch(template, letterIsValid);
+                        //Searcher search = new Searcher(template, letterIsValid);
                         // if we find a word, to save time we can break out of
                     }
                 }
-
+                // check for best word here
             }
         }
         /*
@@ -92,19 +125,26 @@ public class Player implements ScrabbleAI
         return new ExchangeTiles(choice);
     }
 
-    /**
-     * Scores a character based on the current board state
-     * @param c Character to be scored
-     * @param l Location of proposed placement
-     * @param direction current searching direction
-     * @return The total score gained from placing the character on the board
-     */
-    private int scoreChar(char c, Location l, Location direction)
+    private boolean isAdjacent(Location l)
     {
-        // Takes into account special tiles (double letter, triple letter),
-        // creation of other words (words that are created when c is inserted and that are perpendicular to direction)
-        // and the tiles inherent value
-        return Board.TILE_VALUES.get(c);
+        int x = l.getRow();
+        int y = l.getColumn();
+
+        Location up = new Location(x, y+1);
+        Location down = new Location(x, y-1);
+        Location left = new Location(x-1,y);
+        Location right = new Location(x+1, y);
+
+        return ((isOnBoard(right) && isLetter(gateKeeper.getSquare(right))) ||
+                (isOnBoard(down) && isLetter(gateKeeper.getSquare(down))) ||
+                (isOnBoard(up) && isLetter(gateKeeper.getSquare(up))) ||
+                (isOnBoard(left) && isLetter(gateKeeper.getSquare(left))));
+    }
+
+    private boolean isOnBoard(Location l)
+    {
+        int c =l.getColumn(), r = l.getRow();
+        return (c < Board.WIDTH && r < Board.WIDTH && c > -1 && r > -1);
     }
 
     /**
@@ -115,19 +155,28 @@ public class Player implements ScrabbleAI
      * @param direction current searching direction
      * @return true or false if the tile is valid or not
      */
-    private boolean letterIsValid(char c, Location l, Location direction)
-    {
-        return false;
-    }
+//    private boolean letterIsValid(char c, Location l, Location direction)
+//    {
+//        return false;
+//    }
 
     private boolean isLetter(char c)
     {
         return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
     }
 
-    public String buildTemplate(int i, int j, int length, Location direction)
+    public String buildTemplate(char[] window, int start)
     {
-        return new String();
+        StringBuilder bob = new StringBuilder(window.length);
+        for (int i = start; i < window.length; i++)
+        {
+            bob.append(window[i]);
+        }
+        for (int i = 0; i < start; i++)
+        {
+            bob.append(window[i]);
+        }
+        return bob.toString();
     }
 
     // returns a template string for the column/row perpendicular to location l
@@ -164,6 +213,24 @@ public class Player implements ScrabbleAI
             return new PlayWord(string, start, dir);
         }
 
+    }
+    public class Eval implements Searcher.Evaluator
+    {
+        /**
+         * Scores a character based on the current board state
+         * @param c Character to be scored
+         * @param l Location of proposed placement
+         * @param d current searching direction
+         * @return The total score gained from placing the character on the board
+         */
+        @Override
+        public int charEval(char c, Location l, Location d)
+        {
+            // Takes into account special tiles (double letter, triple letter),
+            // creation of other words (words that are created when c is inserted and that are perpendicular to direction)
+            // and the tiles inherent value
+            return Board.TILE_VALUES.get(c);
+        }
     }
 }
 

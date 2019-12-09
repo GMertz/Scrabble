@@ -24,25 +24,6 @@ class TrieTest
         DICTIONARY.addAll(Arrays.asList(in.readAllLines()));
     }
 
-    @Test
-    void FindWordFindsAWord()
-    {
-        trie = new Trie(new In("enable1.txt"));
-        //assertTrue(DICTIONARY.contains(trie.FindWord()));
-    }
-
-    @Test
-    void FindWordFindsValidWord()
-    {
-        trie = new Trie(new In("enable1.txt"));
-        //assertTrue(board.isValidWord(trie.FindWord()));
-    }
-
-    @Test
-    void FindWordFindsMostValuableWord()
-    {
-
-    }
 
     @Test
     void CharToIntWorksWithCases()
