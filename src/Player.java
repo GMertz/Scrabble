@@ -1,15 +1,14 @@
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.PriorityQueue;
+import org.w3c.dom.DOMException;
+
+import java.util.*;
 
 public class Player implements ScrabbleAI
 {
 
-    Trie trie;
-    GateKeeper gateKeeper;
-    ArrayList<Character> hand;
-    int handSize;
+    private Trie trie;
+    private GateKeeper gateKeeper;
+    private ArrayList<Character> hand;
+    private int handSize;
     public Player()
     {
         In infile = new In("enable1.txt");
@@ -30,17 +29,11 @@ public class Player implements ScrabbleAI
         hand = gateKeeper.getHand();
         String template;
 
-        PriorityQueue<String> maxHeap = new PriorityQueue<String>(new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2)
-            {
-                return o1.compareTo(o2);
-            }
-        });
+        PriorityQueue<MoveChoice> maxHeap = new PriorityQueue<MoveChoice>();
 
         for (Location direction: new Location[]{Location.VERTICAL, Location.HORIZONTAL})
         {
-            for (int windowSize = handSize; windowSize >= 2 ; windowSize++)
+            for (int windowSize = handSize; windowSize >= 2 ; windowSize--)
             {
                 // If direction is vertical, then j is a column and k is kth square in this column
                 // If direction is horizontal, then j is a row and k is kth square in this row
@@ -51,20 +44,21 @@ public class Player implements ScrabbleAI
                         first and the last character is a new character if one exists
                     */
                     Location square;
-                    char[] templateCharacters = new char[windowSize]; // Initialize a 'window'
+                    char[] window = new char[windowSize]; // Initialize a 'window'
                     // denotes where the actual start of our template is, using this removes the need to rewrite elements
                     // of the template
                     int templateStart = 0;
 
-                    {// initialize template
+                    {// initialize window
                         for (int i = 0; i < windowSize; i++)
                         {
                             if(direction == Location.VERTICAL) square = new Location(i,j);
                             else square = new Location(j,i);
                             char c =  gateKeeper.getSquare(square);
-                            templateCharacters[i] = isLetter(c) ? c : '_';
+                            window[i] = isLetter(c) ? c : ' ';
                         }
                     }
+
                     for (int k = 0; k < Board.WIDTH-windowSize; k++)
                     {
                         if(direction == Location.VERTICAL) square = new Location(k,j);
@@ -74,7 +68,7 @@ public class Player implements ScrabbleAI
                         // Create template string from templateCharacters then perform AStarSearch on it
 
                         //AStarSearch search = new AStarSearch(template, letterIsValid);
-
+                        // if we find a word, to save time we can break out of
                     }
                 }
 
@@ -85,10 +79,19 @@ public class Player implements ScrabbleAI
             2. Once all moves have been collected, pop the highest scoring move and play it
             3. If no moves were found, shuffle letters
          */
+        // if no move has been found, exchange letters, otherwise return the best move
+        if (maxHeap.isEmpty()) return  DoExchange();
+        return maxHeap.poll().publish();
+    }
 
-        // If no word is found, shuffle hand
-        return null;
+    // this could probably be improved by throwing out certain letters over others
+    // for now it does every tile
+    private ExchangeTiles DoExchange()
+    {
+        boolean[] choice = new boolean[handSize];
+        Arrays.fill(choice,true);
 
+        return new ExchangeTiles(choice);
     }
 
     /**
@@ -137,20 +140,30 @@ public class Player implements ScrabbleAI
         return new String();
     }
 
-    class WordEntry implements Comparable
+    class MoveChoice implements Comparable
     {
-        int score;
-        String string;
-        public WordEntry(String s, int i)
+        private int score;
+        private String string;
+        private Location start;
+        private Location dir;
+
+        public MoveChoice(String s, int score, Location start, Location direction)
         {
             string = s;
-            score = i;
+            this.score = score;
+            this.start = start;
+            this.dir = direction;
         }
 
         @Override
         public int compareTo(Object o)
         {
-            return 0;
+            return ((MoveChoice)o).score - this.score;
+        }
+
+        public PlayWord publish()
+        {
+            return new PlayWord(string, start, dir);
         }
 
     }

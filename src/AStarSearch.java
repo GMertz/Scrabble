@@ -1,6 +1,4 @@
-import java.util.Comparator;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 
@@ -20,36 +18,27 @@ public class AStarSearch
 {
     private int[] g;
     private int[] h;
-    private String bag;
+    private HashMap<Character, Integer> bag;
     private String template;
-    private int nWords = 1;
     private Callable<Character> eval;
-
-    private String[] foundWords;
     private String bestWord;
+    private int searchLen;
 
 
-    public AStarSearch(String template, String bag, Callable<Character> charEval)
+    public AStarSearch(String template, String hand, Callable<Character> charEval)
     {
-        if (nWords > 1)
-        {
-            foundWords = new String[nWords];
-        }
         this.template = template;
-        this.bag = bag;
-        eval = charEval;
-    }
+        bag = new HashMap<>(26);
 
-    public AStarSearch(String template, String bag, Callable<Character> charEval, int nWords)
-    {
-        if (nWords > 1)
+        for (char c : hand.toCharArray())
         {
-            foundWords = new String[nWords];
+            if(bag.containsKey(c)) bag.replace(c, bag.get(c)+1);
+
+            bag.put(c,1);
         }
-        this.template = template;
-        this.bag = bag;
-        this.nWords = nWords;
+
         eval = charEval;
+        searchLen = template.length();
     }
 
     public Comparator<Integer> compareScores = new Comparator<Integer>()
@@ -67,6 +56,18 @@ public class AStarSearch
         int[] cost;
         PriorityQueue<Integer> queue = new PriorityQueue<>(26, compareScores);
 
+
+
         return new String();
+    }
+
+    private void searchHelp()
+    {
+
+    }
+
+    private int ScoreChar(char c)
+    {
+        return Board.TILE_VALUES.get(c);
     }
 }
