@@ -1,5 +1,3 @@
-import org.w3c.dom.DOMException;
-
 import java.util.*;
 
 public class Player implements ScrabbleAI
