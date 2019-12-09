@@ -1,11 +1,22 @@
 import java.util.*;
+/*
+    TODO:
+    1. Searcher -> Gabe
+    2. Evaluator + perpendicularTemplate -> Ryan
+    3. Data structures in find loop + edge case verification -> Lexie
+    4. DoExchange _> Falcon
+
+ */
+
+
 
 public class Player implements ScrabbleAI
 {
     private GateKeeper gateKeeper;
+    private Searcher searcher;
+
     private ArrayList<Character> hand;
     private int handSize;
-    private Searcher searcher;
 
     public Player()
     {
@@ -21,14 +32,15 @@ public class Player implements ScrabbleAI
     @Override
     public ScrabbleMove chooseMove()
     {
+        // 2D bool array of Board.WIDTH X Board.WIDTH
         HashSet<Location> validSpots = new HashSet<>(Board.WIDTH*Board.WIDTH);
+        PriorityQueue<MoveChoice> maxHeap = new PriorityQueue<MoveChoice>();
 
         hand = gateKeeper.getHand();
         handSize = hand.size();
 
-        String template;
+        String template; // "_A__" -> "LATE"
 
-        PriorityQueue<MoveChoice> maxHeap = new PriorityQueue<MoveChoice>();
 
         for (Location direction: new Location[]{Location.VERTICAL, Location.HORIZONTAL})
         {
@@ -59,7 +71,7 @@ public class Player implements ScrabbleAI
                     }
 
                     // May be an ISSUE
-                    for (int k = 0; k < Board.WIDTH-windowSize; k++)
+                    for (int k = windowSize; k < Board.WIDTH-windowSize; k++)
                     {
                         // index for placing the next letter into our wrapping window
                         int p = ((windowSize-1)+templateStart) % windowSize;
@@ -67,9 +79,11 @@ public class Player implements ScrabbleAI
 
                         if(direction == Location.VERTICAL) square = new Location(j,k);
                         else square = new Location(k,j);
+
                         char c = gateKeeper.getSquare(square);
 
                         window[p] = isLetter(c) ? c : ' ';
+
 
                         boolean flag = false;
                         for (int i = 0; i < windowSize; i++)
@@ -86,12 +100,14 @@ public class Player implements ScrabbleAI
                             else if(isAdjacent(l))
                             {
                                 validSpots.add(l);
+                                flag = true;
                                 break;
                             }
                         }
+
                         if(!flag) continue;
                         String temp = buildTemplate(window,templateStart);
-                        maxHeap.add(searcher.search(temp,hand.toString()));
+                        //maxHeap.add(new MoveChoice(searcher.search(temp,hand.toString()),new Location(),direction));
 
 
                         // put this square at the location behind templateStart
@@ -111,7 +127,7 @@ public class Player implements ScrabbleAI
             3. If no moves were found, shuffle letters
          */
         // if no move has been found, exchange letters, otherwise return the best move
-        if (maxHeap.isEmpty()) return  DoExchange();
+        if (maxHeap.isEmpty()) return DoExchange();
         return maxHeap.poll().publish();
     }
 
@@ -146,19 +162,6 @@ public class Player implements ScrabbleAI
         int c =l.getColumn(), r = l.getRow();
         return (c < Board.WIDTH && r < Board.WIDTH && c > -1 && r > -1);
     }
-
-    /**
-     * checks if placing a character in a location is valid. It is invalid if placing the character in this spot creates
-     * an invalid word in the direction adjacent to direction
-     * @param c character to be checked
-     * @param l location character is to placed
-     * @param direction current searching direction
-     * @return true or false if the tile is valid or not
-     */
-//    private boolean letterIsValid(char c, Location l, Location direction)
-//    {
-//        return false;
-//    }
 
     private boolean isLetter(char c)
     {
@@ -212,8 +215,8 @@ public class Player implements ScrabbleAI
         {
             return new PlayWord(string, start, dir);
         }
-
     }
+
     public class Eval implements Searcher.Evaluator
     {
         /**

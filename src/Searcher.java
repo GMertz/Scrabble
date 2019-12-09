@@ -78,5 +78,4 @@ public class Searcher
     {
         int charEval(char c, Location l, Location dir);
     }
-
 }

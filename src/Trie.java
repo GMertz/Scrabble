@@ -15,11 +15,10 @@ public class Trie
 
     public Trie(In inFile)
     {
-        if(true)return;
         head = new Node('\0');
         for (String line : inFile.readAllLines())
         {
-            insert(inFile.readLine());
+            insert(line.trim());
         }
     }
 
