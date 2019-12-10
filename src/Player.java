@@ -107,15 +107,14 @@ public class Player implements ScrabbleAI
 
                         if(!flag) continue;
                         String temp = buildTemplate(window,templateStart);
-                        //maxHeap.add(new MoveChoice(searcher.search(temp,hand.toString()),new Location(),direction));
+                        // Account for extra letters continuing downward or upward from temp!
+                        /*
+                            Check if top or bottom is adjacent to letter, if so traverse downwards/upwards
+                            until we find a blank, adding each char to template.
+                         */
 
+                        //maxHeap.add(new MoveChoice(searcher.search(temp,hand),new Location(),direction));
 
-                        // put this square at the location behind templateStart
-
-                        // Create template string from templateCharacters then perform Searcher on it
-
-                        //Searcher search = new Searcher(template, letterIsValid);
-                        // if we find a word, to save time we can break out of
                     }
                 }
                 // check for best word here
@@ -163,10 +162,11 @@ public class Player implements ScrabbleAI
         return (c < Board.WIDTH && r < Board.WIDTH && c > -1 && r > -1);
     }
 
-    private boolean isLetter(char c)
+    public static boolean isLetter(char c)
     {
         return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
     }
+    public static int CharToInt(char c) { return c < 'a' ? c-'A' : c-'a'; }
 
     public String buildTemplate(char[] window, int start)
     {

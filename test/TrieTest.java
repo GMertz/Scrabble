@@ -28,13 +28,13 @@ class TrieTest
     @Test
     void CharToIntWorksWithCases()
     {
-        assertTrue(trie.CharToInt('a') == trie.CharToInt('A'));
+        assertTrue(Player.CharToInt('a') == Player.CharToInt('A'));
     }
 
     @Test
     void CharToIntFindsTheRightValue()
     {
-        assertTrue(trie.CharToInt('a') == 0);
+        assertTrue(Player.CharToInt('a') == 0);
     }
 
     @Test
