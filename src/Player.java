@@ -82,7 +82,7 @@ public class Player implements ScrabbleAI
 
                         char c = gateKeeper.getSquare(square);
 
-                        window[p] = isLetter(c) ? c : ' ';
+                        window[p] = isLetter(c) ? c : '_';
 
 
                         boolean flag = false;
@@ -166,7 +166,7 @@ public class Player implements ScrabbleAI
     {
         return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
     }
-    public static int CharToInt(char c) { return c < 'a' ? c-'A' : c-'a'; }
+    public static int CharToInt(char c) {return c < 'a' ? c-'A' : c-'a'; }
 
     public String buildTemplate(char[] window, int start)
     {
@@ -220,14 +220,15 @@ public class Player implements ScrabbleAI
     public class Eval implements Searcher.Evaluator
     {
         /**
-         * Scores a character based on the current board state
-         * @param c Character to be scored
-         * @param l Location of proposed placement
-         * @param d current searching direction
-         * @return The total score gained from placing the character on the board
+         *
+         * @param c character to be evaluated
+         * @param row the row in which the character is to be placed
+         * @param col the column in which the character is to be placed
+         * @param isHorizontal is our search horizontal?
+         * @return
          */
         @Override
-        public int charEval(char c, Location l, Location d)
+        public int charEval(char c, int row, int col,boolean isHorizontal)
         {
             // Takes into account special tiles (double letter, triple letter),
             // creation of other words (words that are created when c is inserted and that are perpendicular to direction)

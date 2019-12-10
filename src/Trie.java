@@ -64,7 +64,7 @@ public class Trie
     public class Node
     {
         private char c;
-        private boolean isWord;
+        private boolean isWord = false;
         private Node[] children;
         private Node parent;
         public Node(char c)
@@ -73,10 +73,7 @@ public class Trie
             children = new Node[26]; // one slot for each english letter
         }
 
-        public Node GetChild(char c)
-        {
-            return children[Player.CharToInt(c)];
-        }
+        public Node GetChild(char c) { return children[c-'a']; }
         public Node GetChild(int i)
         {
             return children[i];

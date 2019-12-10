@@ -11,12 +11,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SearcherTest
 {
-    char[] sampleHand = {'_','_','_','_'};
+    char[] sampleHand = {'_','A','E','_','_','_','_','_'};
     HashSet<String> DICTIONARY;
     ArrayList<Character> hand;
     private Searcher search;
 
-    String temp = "____";
+    String temp = "________";
 
     @BeforeEach
     void setup()
@@ -25,9 +25,7 @@ class SearcherTest
         DICTIONARY = new HashSet<>();
         DICTIONARY.addAll(Arrays.asList(in.readAllLines()));
 
-
         search = new Searcher(new Searcher.SimpleScorer());
-
 
         hand = new ArrayList<Character>();
         for (char c: sampleHand)
@@ -41,7 +39,6 @@ class SearcherTest
     {
         search.search(temp,hand,new Location(1,1),new Location(1,1));
         assertTrue(DICTIONARY.contains(search.GetBestWord()));
-
     }
     @Test
     void wordIsProperLength()

@@ -28,8 +28,10 @@ public class Searcher
 
     int[][] evaluations; // Stores evaluations of characters (same dimension as charScores)
 
-    private Location start;
-    private Location dir;
+    private int rowStart;
+    private int colStart;
+    private boolean isHorizontal;
+
 
     private int layer; // which letter of the word are we currently looking for
 
@@ -62,7 +64,7 @@ public class Searcher
             else bag.put(c,1);
         }
 
-        layerVisited = new boolean[targetLen];
+        layerVisited = new boolean[targetLen+1];
         evaluations = new int[targetLen][26];
 
         charScores = new PriorityQueue[targetLen];
@@ -75,8 +77,10 @@ public class Searcher
 
     public void search(String template, ArrayList<Character> hand, Location searchStart, Location direction)
     {
-        start = searchStart;
-        dir = direction;
+        rowStart = searchStart.getRow();
+        colStart = searchStart.getColumn();
+        isHorizontal = (direction == Location.HORIZONTAL);
+
         init(template,hand);
         searchHelp();
     }
@@ -92,53 +96,47 @@ public class Searcher
             //StdOut.printf("\n----------Layer: %d [%s]\n---------",layer,new String(bestWord));
             if(layer == targetLen) // if we are at our target length
             {
-                if(trav.IsWord())
-                {
-                    return;
-                }
-                DecrementLayer();
+                if(trav.IsWord()) return; // word has been found!
+
+                DecrementLayer();// otherwise we've reached our targetLen with only a word segment, so backtrack
                 trav = trav.GetParent();
             }
-            else if (Player.isLetter(template.charAt(layer)))
-            {
-                tempC = template.charAt(layer);
-                tempNode = trav.GetChild(tempC);
-
-                if (tempNode == null || layerVisited[layer])
-                {
-                    layerVisited[layer] = false;
-                    trav = trav.GetParent();
-                }
-                else
-                {
-                    trav = tempNode;
-                }
-
-                layerVisited[layer] = true;
-                layer+=1;
-            }
-            else
+            else if (template.charAt(layer) == '_')
             {
                 if (!layerVisited[layer])
                 {
-                    // add every non-null child to the queue
-                    charScores[layer] = new PriorityQueue<Integer>(26, new CompareScores());
-                    ScoreLetters(trav);
+                    ScoreLetters(trav);  // fill charScores with possible next letters
                     layerVisited[layer] = true;
                 }
                 if(charScores[layer].isEmpty()) // if there are no possible paths to take
                 {
                     if(layer == 0) return; // no word was found :(
 
-                    layerVisited[layer] = false;
                     DecrementLayer();
                     trav = trav.GetParent();
                 }
                 else // continue to the next character
                 {
-                    int val = charScores[layer].poll();
+                    int val = charScores[layer].poll(); // Add the highest value character
+
                     IncrementLayer(val);
                     trav = trav.GetChild(val);
+                }
+            }
+            else // If there is a specified letter in the template
+            {
+                tempC = template.charAt(layer);
+                tempNode = trav.GetChild(tempC);
+
+                if (tempNode == null || layerVisited[layer])
+                {
+                    DecrementLayer();
+                    trav = trav.GetParent();
+                }
+                else
+                {
+                    IncrementLayer(tempC);
+                    trav = tempNode;
                 }
             }
         }
@@ -148,35 +146,29 @@ public class Searcher
     {
         if(evaluations[layer][a] == -1)
         {
-            Location location;
-            int sA;
-            if ((dir == Location.HORIZONTAL))
-            {
-                location = new Location(start.getRow(), start.getColumn() + layer);
-            }
-            else
-            {
-                location = new Location(start.getRow() + layer, start.getColumn());
-            }
-            sA = eval.charEval((char) ('a' + a), location, dir);
+            int sA, row = rowStart, col = colStart;
+            if (isHorizontal) col += layer;
+            else row += layer;
+
+            sA = eval.charEval((char) ('a' + a),row, col, isHorizontal);
             evaluations[layer][a] = sA;
             //StdOut.printf("|%d, %d| ",a, sA);
         }
-        else
-        {
-            //StdOut.printf("{%d} ",evaluations[layer][a]);
-        }
+//        else
+//        {
+//            StdOut.printf("{%d} ",evaluations[layer][a]);
+//        }
     }
 
 
     private void ScoreLetters(Trie.Node trav)
     {
+        charScores[layer] = new PriorityQueue<Integer>(26, new CompareScores());
         Trie.Node tempNode;
-        int t;  
+        int t;
         for (Character piece : bag.keySet())
         {
             if(bag.get(piece) <= 0) continue;
-
             if (piece == '_')
             {
                 for (int i = 0; i < 26; i++)
@@ -184,7 +176,7 @@ public class Searcher
                     tempNode = trav.GetChild(i);
                     if (tempNode != null)
                     {
-                        t = Player.CharToInt(tempNode.Get());
+                        t = lowerCaseToInt(tempNode.Get());
                         evaluate(t);
                         charScores[layer].add(t);
                     }
@@ -193,10 +185,10 @@ public class Searcher
             }
             else
             {
-                tempNode = trav.GetChild(Player.CharToInt(piece));
+                tempNode = trav.GetChild(piece);
                 if (tempNode != null)
                 {
-                    t = Player.CharToInt(tempNode.Get());
+                    t = lowerCaseToInt(tempNode.Get());
                     evaluate(t);
                     charScores[layer].add(t);
                 }
@@ -206,6 +198,7 @@ public class Searcher
 
     private void DecrementLayer()
     {
+        layerVisited[layer] = false;
         layer -= 1;
         char tempC = bestWord[layer];
 
@@ -220,9 +213,23 @@ public class Searcher
                 bag.replace('_', bag.get('_')+1);
             }
         }
-        bestScore -= evaluations[layer][Player.CharToInt(tempC)];
+        bestScore -= evaluations[layer][lowerCaseToInt(tempC)];
     }
 
+    // Increment with a static letter
+    private void IncrementLayer(char c)
+    {
+        int val = lowerCaseToInt(c);
+
+        layerVisited[layer] = true;
+        bestWord[layer] = c; // add letter to our template
+        evaluations[layer][val] = ScoreChar(c);
+        bestScore += evaluations[layer][val];
+
+        layer += 1;
+    }
+
+    // Increment with a letter from hand
     private void IncrementLayer(int val)
     {
         char let = (char)('a'+val);
@@ -242,6 +249,8 @@ public class Searcher
         layer += 1;
     }
 
+    private int lowerCaseToInt(char c) { return c-'a'; }
+
     class CompareScores implements Comparator<Integer>
     {
         @Override
@@ -258,13 +267,13 @@ public class Searcher
 
     public interface Evaluator
     {
-        int charEval(char c, Location l, Location dir);
+        int charEval(char c, int row, int col, boolean horizontal);
     }
 
     public static class SimpleScorer implements Evaluator
     {
         @Override
-        public int charEval(char c, Location l, Location dir)
+        public int charEval(char c, int row, int col, boolean horizontal)
         {
             return ScoreChar(c);
         }
