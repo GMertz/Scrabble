@@ -41,7 +41,7 @@ class SearcherTest
     }
 
     @Test
-    void searchFindsAValidWord()
+    void searchFindsAllValidWords()
     {
         search.search(temp,hand,new Location(1,1),new Location(1,1));
         for (String s : que)
@@ -55,7 +55,6 @@ class SearcherTest
                 assertTrue(false);
             }
         }
-
     }
 
     //@Test
@@ -67,7 +66,7 @@ class SearcherTest
         }
     }
 
-    @Test
+    //@Test
     void printAllWords()
     {
         for (String s : que)

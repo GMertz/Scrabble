@@ -1,6 +1,9 @@
 import java.util.*;
 
 
+// TAKE OUT SCORING FOR '_'
+// FURTHEST REQUIRED CHARACTER
+
 /**
  * helper class to find the 'best', 'valid' word that fits the given 'template'
  * 'best': the word with maximum score
