@@ -1,20 +1,21 @@
 import com.sun.source.tree.AssertTree;
+import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.HashSet;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class SearcherTest
 {
-    char[] sampleHand = {'_','A','E','_','_','_','_','_'};
+    char[] sampleHand = {'_','_','_','_','_','_','_','_','_'};
     HashSet<String> DICTIONARY;
     ArrayList<Character> hand;
     private Searcher search;
+
+    PriorityQueue<String> que;
+    HashMap<String,Integer> scores;
 
     String temp = "________";
 
@@ -32,28 +33,50 @@ class SearcherTest
         {
             hand.add(c);
         }
+
+        search.search(temp,hand,new Location(1,1),new Location(1,1));
+        que = search.GetAllWords();
+        scores = search.GetAllWordScores();
+        String s = que.poll();
     }
 
     @Test
     void searchFindsAValidWord()
     {
         search.search(temp,hand,new Location(1,1),new Location(1,1));
-        assertTrue(DICTIONARY.contains(search.GetBestWord()));
-    }
-    @Test
-    void wordIsProperLength()
-    {
-        search.search(temp,hand,new Location(1,1),new Location(1,1));
-        StdOut.printf("|%s|",search.GetBestWord());
-        StdOut.printf("|%d|",search.GetBestScore());
+        for (String s : que)
+        {
+            if (DICTIONARY.contains(s))
+            {
+                assertTrue(true);
+            }
+            else
+            {
+                assertTrue(false);
+            }
+        }
 
-
-        assertEquals(search.GetBestWord().length(),temp.length());
     }
 
     //@Test
-    void test()
+    void wordIsProperLength()
     {
+        for (String s : que)
+        {
+            assertEquals(s.length(),temp.length());
+        }
+    }
+
+    @Test
+    void printAllWords()
+    {
+        for (String s : que)
+        {
+            StdOut.printf("|%s|",s);
+            StdOut.printf("|%d|\n",scores.get(s));
+        }
+
+
     }
     //@Test
     void searchedWordIsCorrect()

@@ -16,8 +16,8 @@ public class Searcher
 {
     private Trie trie;
 
-    private char[] bestWord;
-    private int bestScore = -1;
+    private char[] target;
+    private int targetScore = -1;
 
     private int targetLen; // Length of our desired word
 
@@ -32,28 +32,45 @@ public class Searcher
     private int colStart;
     private boolean isHorizontal;
 
-
     private int layer; // which letter of the word are we currently looking for
 
     private Evaluator eval;
 
     private boolean[] layerVisited;
 
-
+    private PriorityQueue<String> words;
+    HashMap<String, Integer> wordScores;
+    String bestWord;
     public Searcher(Evaluator e)
     {
         eval = e;
         trie = new Trie(new In("enable1.txt"));
     }
 
-    public String GetBestWord() { return new String(bestWord); }
-    public int GetBestScore() { return bestScore; }
+    public String GetBestWord()
+    {
+        if(bestWord == null)
+        {
+            bestWord = words.poll();
+        }
+        return bestWord;
+    }
+    public int GetBestScore()
+    {
+        if(bestWord == null)
+        {
+            bestWord = words.poll();
+        }
+        return wordScores.get(bestWord);
+    }
+    public PriorityQueue<String> GetAllWords() { return words; }
+    public HashMap<String,Integer> GetAllWordScores() { return wordScores; }
 
     private void init(String temp, ArrayList<Character> hand)
     {
         this.template = temp.toLowerCase();
         targetLen = template.length();
-        bestWord = template.toCharArray();
+        target = template.toCharArray();
 
         bag = new HashMap<>();
 
@@ -73,6 +90,9 @@ public class Searcher
         {
             Arrays.fill(evaluations[i], -1);
         }
+
+        words = new PriorityQueue<>(new CompareStrings());
+        wordScores = new HashMap<>();
     }
 
     public void search(String template, ArrayList<Character> hand, Location searchStart, Location direction)
@@ -93,12 +113,14 @@ public class Searcher
 
         while(layer <= targetLen)
         {
-            //StdOut.printf("\n----------Layer: %d [%s]\n---------",layer,new String(bestWord));
-            if(layer == targetLen) // if we are at our target length
+            if(trav.IsWord()) // word has been found!
             {
-                if(trav.IsWord()) return; // word has been found!
-
-                DecrementLayer();// otherwise we've reached our targetLen with only a word segment, so backtrack
+                AddWord();
+            }
+            //StdOut.printf("\n----------Layer: %d [%s]\n---------",layer,new String(target));
+            if(layer == targetLen) // if we are at our max length
+            {
+                DecrementLayer();
                 trav = trav.GetParent();
             }
             else if (template.charAt(layer) == '_')
@@ -200,7 +222,7 @@ public class Searcher
     {
         layerVisited[layer] = false;
         layer -= 1;
-        char tempC = bestWord[layer];
+        char tempC = target[layer];
 
         if (!Player.isLetter(template.charAt(layer)))
         {
@@ -213,7 +235,7 @@ public class Searcher
                 bag.replace('_', bag.get('_')+1);
             }
         }
-        bestScore -= evaluations[layer][lowerCaseToInt(tempC)];
+        targetScore -= evaluations[layer][lowerCaseToInt(tempC)];
     }
 
     // Increment with a static letter
@@ -222,9 +244,9 @@ public class Searcher
         int val = lowerCaseToInt(c);
 
         layerVisited[layer] = true;
-        bestWord[layer] = c; // add letter to our template
+        target[layer] = c; // add letter to our template
         evaluations[layer][val] = ScoreChar(c);
-        bestScore += evaluations[layer][val];
+        targetScore += evaluations[layer][val];
 
         layer += 1;
     }
@@ -233,7 +255,7 @@ public class Searcher
     private void IncrementLayer(int val)
     {
         char let = (char)('a'+val);
-        bestWord[layer] = let; // add letter to our template
+        target[layer] = let; // add letter to our template
 
         // if letter is in our hand (bag) then decrement it, otherwise decrement '_'
         if (bag.containsKey(let))
@@ -245,12 +267,25 @@ public class Searcher
             bag.replace('_', bag.get('_')-1);
         }
 
-        bestScore += evaluations[layer][val];
+        targetScore += evaluations[layer][val];
         layer += 1;
     }
 
     private int lowerCaseToInt(char c) { return c-'a'; }
+    private void AddWord()
+    {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < layer; i++)
+        {
+            sb.append(target[i]);
+        }
 
+        String s = sb.toString();
+
+        if (wordScores.containsKey(s)) return;
+        wordScores.put(s,targetScore);
+        words.add(s);
+    }
     class CompareScores implements Comparator<Integer>
     {
         @Override
@@ -258,6 +293,12 @@ public class Searcher
         {
             return evaluations[layer][b] - evaluations[layer][a];
         }
+    }
+
+    class CompareStrings implements Comparator<String>
+    {
+        @Override
+        public int compare(String a, String b) { return wordScores.get(b) - wordScores.get(a); }
     }
 
     private static int ScoreChar(char c)

@@ -92,6 +92,11 @@ public class Player implements ScrabbleAI
                             if(direction == Location.VERTICAL) l = new Location(j,k+i);
                             else l = new Location(k+i,j);
 
+                            //account for this vvv
+//                            if(isLetter(gateKeeper.getSquare(l)))
+//                            {
+//                               flag = false;
+//                            }
                             if (validSpots.contains(l))
                             {
                                 flag = true;
@@ -106,6 +111,7 @@ public class Player implements ScrabbleAI
                         }
 
                         if(!flag) continue;
+                        StringBuilder sb;
                         String temp = buildTemplate(window,templateStart);
                         // Account for extra letters continuing downward or upward from temp!
                         /*
