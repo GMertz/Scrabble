@@ -1,11 +1,22 @@
 import java.util.*;
+/*
+    TODO:
+    1. Searcher -> Gabe
+    2. Evaluator + perpendicularTemplate -> Ryan
+    3. Data structures in find loop + edge case verification -> Lexie
+    4. DoExchange _> Falcon
+
+ */
+
+
 
 public class Player implements ScrabbleAI
 {
     private GateKeeper gateKeeper;
-    private ArrayList<Character> hand;
-    private int handSize;
     private Searcher searcher;
+
+    public ArrayList<Character> hand;
+    private int handSize;
 
     public Player()
     {
@@ -21,14 +32,15 @@ public class Player implements ScrabbleAI
     @Override
     public ScrabbleMove chooseMove()
     {
+        // 2D bool array of Board.WIDTH X Board.WIDTH
         HashSet<Location> validSpots = new HashSet<>(Board.WIDTH*Board.WIDTH);
+        PriorityQueue<MoveChoice> maxHeap = new PriorityQueue<MoveChoice>();
 
         hand = gateKeeper.getHand();
         handSize = hand.size();
 
-        String template;
+        String template; // "_A__" -> "LATE"
 
-        PriorityQueue<MoveChoice> maxHeap = new PriorityQueue<MoveChoice>();
 
         for (Location direction: new Location[]{Location.VERTICAL, Location.HORIZONTAL})
         {
@@ -59,7 +71,7 @@ public class Player implements ScrabbleAI
                     }
 
                     // May be an ISSUE
-                    for (int k = 0; k < Board.WIDTH-windowSize; k++)
+                    for (int k = windowSize; k < Board.WIDTH-windowSize; k++)
                     {
                         // index for placing the next letter into our wrapping window
                         int p = ((windowSize-1)+templateStart) % windowSize;
@@ -67,9 +79,11 @@ public class Player implements ScrabbleAI
 
                         if(direction == Location.VERTICAL) square = new Location(j,k);
                         else square = new Location(k,j);
+
                         char c = gateKeeper.getSquare(square);
 
-                        window[p] = isLetter(c) ? c : ' ';
+                        window[p] = isLetter(c) ? c : '_';
+
 
                         boolean flag = false;
                         for (int i = 0; i < windowSize; i++)
@@ -78,6 +92,11 @@ public class Player implements ScrabbleAI
                             if(direction == Location.VERTICAL) l = new Location(j,k+i);
                             else l = new Location(k+i,j);
 
+                            //account for this vvv
+//                            if(isLetter(gateKeeper.getSquare(l)))
+//                            {
+//                               flag = false;
+//                            }
                             if (validSpots.contains(l))
                             {
                                 flag = true;
@@ -86,20 +105,22 @@ public class Player implements ScrabbleAI
                             else if(isAdjacent(l))
                             {
                                 validSpots.add(l);
+                                flag = true;
                                 break;
                             }
                         }
+
                         if(!flag) continue;
+                        StringBuilder sb;
                         String temp = buildTemplate(window,templateStart);
-                        maxHeap.add(searcher.search(temp,hand.toString()));
+                        // Account for extra letters continuing downward or upward from temp!
+                        /*
+                            Check if top or bottom is adjacent to letter, if so traverse downwards/upwards
+                            until we find a blank, adding each char to template.
+                         */
 
+                        //maxHeap.add(new MoveChoice(searcher.search(temp,hand),new Location(),direction));
 
-                        // put this square at the location behind templateStart
-
-                        // Create template string from templateCharacters then perform Searcher on it
-
-                        //Searcher search = new Searcher(template, letterIsValid);
-                        // if we find a word, to save time we can break out of
                     }
                 }
                 // check for best word here
@@ -111,18 +132,80 @@ public class Player implements ScrabbleAI
             3. If no moves were found, shuffle letters
          */
         // if no move has been found, exchange letters, otherwise return the best move
-        if (maxHeap.isEmpty()) return  DoExchange();
-        return maxHeap.poll().publish();
+       /** uncomment after testing  if (maxHeap.isEmpty()) return DoExchange();
+        **/return maxHeap.poll().publish();
     }
 
     // this could probably be improved by throwing out certain letters over others
     // for now it does every tile
-    private ExchangeTiles DoExchange()
+    public ExchangeTiles DoExchange()
     {
-        boolean[] choice = new boolean[handSize];
-        Arrays.fill(choice,true);
+        int [] letters = new int[26];
+        int [] temphand = new int[hand.size()];
+        int temp = 0;
+        int vcount = 0;
+        boolean[] choice = new boolean[hand.size()];
+
+        for (int i = 0; i < hand.size(); i++) {
+
+            temp = hand.get(i) - 'a';
+
+            temphand[i] = temp;
+            if (0 <= temp && temp <= 26) {
+                ++letters[temp];
+            }
+            if (isVowel(temp)){
+             ++vcount;
+            }
+        }
+
+        for (int i = 0; i < letters.length; i++) {
+                int dump = letters[i] - 1;
+                int j = 0;
+
+                while (dump > 0 && j<hand.size()){
+                    if (temphand[j] == i){
+                        choice[j]=true;
+                        --dump;
+                    }
+                    j++;
+                }
+
+        }
+        boolean problem = vcount>3;
+        int lowest =  Integer.MAX_VALUE;
+        int lowIndex = -1;
+        while (vcount!=3){
+            for (int i = 0; i < hand.size(); i++) {
+                if(temphand[i] != -2 && isVowel(temphand[i])==problem && searcher.getFreaqy(temphand[i])<lowest){
+                    lowest=searcher.getFreaqy(temphand[i]);
+                    lowIndex = i;
+
+                }
+            }
+            if (lowIndex>=0){
+                choice[lowIndex] = true;
+            }
+            vcount += problem ? -1 :1;
+        }
+
+        for (int i = 0; i < hand.size(); i++) {
+            if (temphand[i] == -2){
+                choice[i] = false;
+            }
+        }
+
+
 
         return new ExchangeTiles(choice);
+        
+    }
+
+    public boolean isVowel(int letter) {
+        if (letter == 0 || letter == 4 || letter == 8 || letter == 14 || letter == 20){ //0, 4, 8, 14, 20
+            return true;
+        }
+        return false;
     }
 
     private boolean isAdjacent(Location l)
@@ -147,23 +230,11 @@ public class Player implements ScrabbleAI
         return (c < Board.WIDTH && r < Board.WIDTH && c > -1 && r > -1);
     }
 
-    /**
-     * checks if placing a character in a location is valid. It is invalid if placing the character in this spot creates
-     * an invalid word in the direction adjacent to direction
-     * @param c character to be checked
-     * @param l location character is to placed
-     * @param direction current searching direction
-     * @return true or false if the tile is valid or not
-     */
-//    private boolean letterIsValid(char c, Location l, Location direction)
-//    {
-//        return false;
-//    }
-
-    private boolean isLetter(char c)
+    public static boolean isLetter(char c)
     {
         return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
     }
+    public static int CharToInt(char c) {return c < 'a' ? c-'A' : c-'a'; }
 
     public String buildTemplate(char[] window, int start)
     {
@@ -212,19 +283,20 @@ public class Player implements ScrabbleAI
         {
             return new PlayWord(string, start, dir);
         }
-
     }
+
     public class Eval implements Searcher.Evaluator
     {
         /**
-         * Scores a character based on the current board state
-         * @param c Character to be scored
-         * @param l Location of proposed placement
-         * @param d current searching direction
-         * @return The total score gained from placing the character on the board
+         *
+         * @param c character to be evaluated
+         * @param row the row in which the character is to be placed
+         * @param col the column in which the character is to be placed
+         * @param isHorizontal is our search horizontal?
+         * @return
          */
         @Override
-        public int charEval(char c, Location l, Location d)
+        public int charEval(char c, int row, int col,boolean isHorizontal)
         {
             // Takes into account special tiles (double letter, triple letter),
             // creation of other words (words that are created when c is inserted and that are perpendicular to direction)
