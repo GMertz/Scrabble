@@ -43,7 +43,7 @@ public class Trie
         Node trav = head;
         for (int i = 0; i < s.length(); ++i)
         {
-            int c = SmoothCriminal.CharToInt(s.charAt(i));
+            int c = Player.CharToInt(s.charAt(i));
 
             if(trav.children[c] == null)
             {
@@ -69,7 +69,7 @@ public class Trie
         }
         else
         {
-            int letter = SmoothCriminal.CharToInt(s.charAt(ind));
+            int letter = Player.CharToInt(s.charAt(ind));
             if (n.children[letter] == null)
             {
                 n.children[letter] = new Node(s.charAt(ind));

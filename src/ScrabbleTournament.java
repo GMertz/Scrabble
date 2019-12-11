@@ -1,7 +1,8 @@
 /** A tournament between ScrabbleAIs. Edit the constructor to change the contestants. */
 public class ScrabbleTournament {
     static int totalRuns = 100;
-    double totalScore;
+    double ourScore = 0;
+    double petesScore = 0;
 
     /** Contestants. */
     private ScrabbleAI[] players;
@@ -10,12 +11,13 @@ public class ScrabbleTournament {
         // List contestants here
         players = new ScrabbleAI[] {
           new SmoothCriminal(),
-          new SmoothCriminal()
+          new Incrementalist()
         };
     }
 
     public static void main(String[] args) throws IllegalMoveException {
-        double score = 0;
+        double scoreUs = 0, scoreThem = 0;
+
         for (int i = 0; i < totalRuns; i++)
         {
             if(i%30 == 0)
@@ -24,10 +26,10 @@ public class ScrabbleTournament {
             }
             ScrabbleTournament tourn = new ScrabbleTournament();
             tourn.run();
-            score+=tourn.totalScore;
+            scoreUs += tourn.ourScore;
+            scoreThem += tourn.petesScore;
         }
-        StdOut.printf("Average Combined score after %d runs: %.4f",totalRuns, score/((double)totalRuns));
-        StdOut.printf("Average Single score after %d runs: %.4f",totalRuns, score/((double)totalRuns*2));
+        StdOut.printf("Average score (Ours vs Theirs) after %d runs: %.4f vs %.4f ",totalRuns, scoreUs/totalRuns, scoreThem/totalRuns);
 
     }
 
@@ -72,7 +74,8 @@ public class ScrabbleTournament {
         //StdOut.print(board);
         //StdOut.println("Final score: " + a + " " + s0 + ", " + b + " " + s1);
         //StdOut.println();
-        totalScore += (s0 + s1)/2;
+        ourScore += s0;
+        petesScore += s1;
 
         if (s0 > s1) {
             return new double[] {1, 0};

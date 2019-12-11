@@ -28,13 +28,13 @@ class TrieTest
     @Test
     void CharToIntWorksWithCases()
     {
-        assertTrue(SmoothCriminal.CharToInt('a') == SmoothCriminal.CharToInt('A'));
+        assertTrue(Player.CharToInt('a') == Player.CharToInt('A'));
     }
 
     @Test
     void CharToIntFindsTheRightValue()
     {
-        assertTrue(SmoothCriminal.CharToInt('a') == 0);
+        assertTrue(Player.CharToInt('a') == 0);
     }
 
     @Test
