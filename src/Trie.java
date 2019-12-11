@@ -5,16 +5,19 @@ import java.util.concurrent.Callable;
 
 public class Trie
 {
-    // what is everything the Trie will be used for?
+    /** Create trie to store all the words in enable.txt **/
     private Node head;
 
+    /** stores the number of times each letter appears in the dictionary **/
     private int [] freqarr = new int[26];
 
+    /** make the head of the trie null **/
     public Trie()
     {
         head = new Node('\0');
     }
 
+    /** read the file **/
     public Trie(In inFile)
     {
         head = new Node('\0');
@@ -23,10 +26,13 @@ public class Trie
             insert(line.trim());
         }
     }
+
+
     public Node GetHead(){return head;}
 
     public void insert(String s) { insertHelp(s,0, head); }
 
+    /** check if trie contains string **/
     public boolean contains(String s)
     {
         Node trav = head;
@@ -43,6 +49,7 @@ public class Trie
         return trav.isWord;
     }
 
+    /** insert new nodes into tree recursively **/
     private Node insertHelp(String s, int ind, Node n)
     {
         if(ind == s.length() && n.c == s.charAt(s.length()-1))
@@ -60,6 +67,7 @@ public class Trie
 
             n.children[letter].parent = n;
 
+            /** as we insert the nodes, we note the frequency at which each letter appears**/
             ++ freqarr [letter];
         }
         return n;
@@ -71,6 +79,8 @@ public class Trie
         private boolean isWord = false;
         private Node[] children;
         private Node parent;
+
+       /** trie is composed of nodes. Each node has 26 children. **/
         public Node(char c)
         {
             this.c = c;
