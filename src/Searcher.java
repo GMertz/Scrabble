@@ -221,7 +221,7 @@ public class Searcher
         layer -= 1;
         char tempC = Character.toLowerCase(current[layer]);
 
-        if (!Player.isLetter(template[layer]))
+        if (!SmoothCriminal.isLetter(template[layer]))
         {
             if (bag.containsKey(tempC))
             {

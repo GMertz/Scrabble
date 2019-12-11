@@ -33,13 +33,17 @@ public class Trie
 
     public void insert(String s) { insertHelp(s,0, head); }
 
-    /** check if trie contains string **/
-    public boolean contains(String s)
+    /**
+     * is the string in the dictionary?
+     * @param s string to check against dictionary
+     * @return
+     */
+    public boolean contains(String s) // used in our trie testing class
     {
         Node trav = head;
-        for (int i = 0; i < s.length(); i++)
+        for (int i = 0; i < s.length(); ++i)
         {
-            int c = Player.CharToInt(s.charAt(i));
+            int c = SmoothCriminal.CharToInt(s.charAt(i));
 
             if(trav.children[c] == null)
             {
@@ -50,7 +54,13 @@ public class Trie
         return trav.isWord;
     }
 
-    /** insert new nodes into tree recursively **/
+    /**
+     *
+     * @param s string to be inserted
+     * @param ind current spot in the string we are considering
+     * @param n current node we are visiting
+     * @return child node of the caller
+     */
     private Node insertHelp(String s, int ind, Node n)
     {
         if(ind == s.length() && n.c == s.charAt(s.length()-1))
@@ -59,7 +69,7 @@ public class Trie
         }
         else
         {
-            int letter = Player.CharToInt(s.charAt(ind));
+            int letter = SmoothCriminal.CharToInt(s.charAt(ind));
             if (n.children[letter] == null)
             {
                 n.children[letter] = new Node(s.charAt(ind));
@@ -69,7 +79,7 @@ public class Trie
             n.children[letter].parent = n;
 
             /** as we insert the nodes, we note the frequency at which each letter appears**/
-            ++freqarr [letter];
+            freqarr [letter] += 1;
         }
         return n;
     }

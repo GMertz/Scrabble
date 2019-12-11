@@ -1,6 +1,6 @@
 /** A tournament between ScrabbleAIs. Edit the constructor to change the contestants. */
 public class ScrabbleTournament {
-    static int totalRuns = 1000;
+    static int totalRuns = 100;
     double totalScore;
 
     /** Contestants. */
@@ -9,8 +9,8 @@ public class ScrabbleTournament {
     public ScrabbleTournament() {
         // List contestants here
         players = new ScrabbleAI[] {
-          new Player(),
-          new Player()
+          new SmoothCriminal(),
+          new SmoothCriminal()
         };
     }
 
