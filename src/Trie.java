@@ -87,7 +87,10 @@ public class Trie
             children = new Node[26]; // one slot for each english letter
         }
 
-        public Node GetChild(char c) { return children[c-'a']; }
+        public Node GetChild(char c)
+        {
+            return children[c-'a'];
+        }
         public Node GetChild(int i)
         {
             return children[i];

@@ -7,7 +7,7 @@ public class ScrabbleTournament {
     public ScrabbleTournament() {
         // List contestants here
         players = new ScrabbleAI[] {
-          new Incrementalist(),
+          new Player(),
           new Incrementalist()
         };
     }
@@ -40,9 +40,11 @@ public class ScrabbleTournament {
      * Plays a game between a (going first) and b. Returns their tournament scores, either {1, 0} (if a wins),
      * {0, 1}, or {0.5, 0.5}.
      */
-    public double[] playGame(ScrabbleAI a, ScrabbleAI b) throws IllegalMoveException {
+    public double[] playGame(ScrabbleAI a, ScrabbleAI b) throws IllegalMoveException
+    {
         StdOut.println(a + " vs " + b + ":");
         Board board = new Board();
+        StdOut.print(board.toString());
         a.setGateKeeper(new GateKeeper(board, 0));
         b.setGateKeeper(new GateKeeper(board, 1));
         while (!board.gameIsOver()) {
@@ -50,10 +52,24 @@ public class ScrabbleTournament {
             if (!board.gameIsOver()) {
                 playMove(board, b, 1);
             }
+//            int i = 0, k = 0;
+//            for (char[] row : board.squares)
+//            {
+//                for (char c : row)
+//                {
+//                    if(i == 0 && k == 0)
+//                    {
+//                        StdOut.printf("%d,%d",i,k);
+//                    }
+//                    StdOut.printf("%c",c);
+//                    i++;
+//                }
+//                StdOut.println();
+//                k++;
+//            }
         }
         int s0 = board.getScore(0);
         int s1 = board.getScore(1);
-        StdOut.print(board);
         StdOut.println("Final score: " + a + " " + s0 + ", " + b + " " + s1);
         StdOut.println();
         if (s0 > s1) {
