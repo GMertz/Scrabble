@@ -1,14 +1,4 @@
 import java.util.*;
-/*
-    TODO:
-    1. Searcher -> Gabe
-    2. Evaluator + perpendicularTemplate -> Ryan
-    3. Data structures in find loop + edge case verification -> Lexie
-    4. DoExchange -> Falcon
-
- */
-
-
 
 public class Player implements ScrabbleAI
 {
@@ -33,7 +23,6 @@ public class Player implements ScrabbleAI
     @Override
     public ScrabbleMove chooseMove()
     {
-        // 2D bool array of Board.WIDTH X Board.WIDTH
         validSpots = new boolean[Board.WIDTH][Board.WIDTH];
 
         if (!isLetter(gateKeeper.getSquare(Location.CENTER)))
@@ -46,8 +35,6 @@ public class Player implements ScrabbleAI
 
         hand = gateKeeper.getHand();
         handSize = hand.size();
-
-        String template; // "_A__" -> "LATE"
 
         for (Location direction: new Location[]{Location.VERTICAL, Location.HORIZONTAL})
         {
@@ -135,17 +122,19 @@ public class Player implements ScrabbleAI
             3. If no moves were found, shuffle letters
          */
         // if no move has been found, exchange letters, otherwise return the best move
-        while (!maxHeap.isEmpty())
+
+        while(!maxHeap.isEmpty())
         {
             try
             {
                 WordChoice wc = maxHeap.poll();
-                gateKeeper.verifyLegality(wc.string,wc.start,wc.start);
+                gateKeeper.verifyLegality(wc.string,wc.start,wc.dir);
                 return wc.publish();
             }
             catch (IllegalMoveException e) { }
         }
         return DoExchange();
+
     }
     public char[] createTemplate(char[] window, int start)
     {
@@ -218,8 +207,6 @@ public class Player implements ScrabbleAI
                 choice[i] = false;
             }
         }
-
-
 
         return new ExchangeTiles(choice);
 
@@ -347,47 +334,9 @@ public class Player implements ScrabbleAI
          * @param isHorizontal is our search horizontal?
          * @return
          */
-        public char[][] templates;
-        Eval()
-        {
-            templates = new char[Board.WIDTH][];
-        }
         @Override
-        public int charEval(char c, int row, int col, boolean isHorizontal, boolean isBlank)
+        public int charEval(char c, int row, int col, boolean isHorizontal)
         {
-//            int index;
-//            if (isHorizontal) // if were searching horizontally, column will be our index into evals
-//            {
-//                index = col;
-//            }
-//            else
-//            {
-//                index = row;
-//            }
-//
-//            if (templates[index] == null)
-//            {
-//                templates[index] = perpendicularTemplate(row,col,isHorizontal? Location.HORIZONTAL: Location.VERTICAL);
-//            }
-//
-//            int wordModifier = 0;
-//            char[] temp = templates[index];
-//            if (temp.length != 1)
-//            {
-//                int i = temp[0];
-//                StringBuilder sb  = new StringBuilder(temp.length-1);
-//                for (int j = 1; j < temp.length; j++)
-//                {
-//                    if (temp[i] == ' ') sb.append(c);
-//                    else sb.append(temp[i]);
-//                }
-//
-//
-//                String s = sb.toString();
-//                StdOut.printf("|%s, %d|",s,s.length());
-//                if(!searcher.IsWord(s)) return -1;
-//                else return gateKeeper.score(Character.toString(isBlank? Character.toUpperCase(c) : c) , new Location(row,col), isHorizontal? Location.HORIZONTAL: Location.VERTICAL);
-//            }
             return Board.TILE_VALUES.get(c);
         }
     }

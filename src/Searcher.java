@@ -197,7 +197,7 @@ public class Searcher
             if (isHorizontal) col += layer;
             else row += layer;
 
-            sA = eval.charEval((char) ('a' + a), row, col, isHorizontal, false);
+            sA = eval.charEval((char) ('a' + a), row, col, isHorizontal);
             evaluations[layer][a] = sA;
         }
     }
@@ -336,13 +336,13 @@ public class Searcher
 
     public interface Evaluator
     {
-        int charEval(char c, int row, int col, boolean horizontal, boolean isBlank);
+        int charEval(char c, int row, int col, boolean horizontal);
     }
 
     public static class SimpleScorer implements Evaluator
     {
         @Override
-        public int charEval(char c, int row, int col, boolean horizontal, boolean isBlank)
+        public int charEval(char c, int row, int col, boolean horizontal)
         {
             return ScoreChar(c);
         }
