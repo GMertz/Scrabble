@@ -1,8 +1,5 @@
 /** A tournament between ScrabbleAIs. Edit the constructor to change the contestants. */
 public class ScrabbleTournament {
-    static int totalRuns = 10;
-    double ourScore = 0;
-    double petesScore = 0;
 
     /** Contestants. */
     private ScrabbleAI[] players;
@@ -16,21 +13,7 @@ public class ScrabbleTournament {
     }
 
     public static void main(String[] args) throws IllegalMoveException {
-        double scoreUs = 0, scoreThem = 0;
-
-        for (int i = 0; i < totalRuns; i++)
-        {
-            if(i%30 == 0)
-            {
-                StdOut.printf("Starting %dth run\n",i);
-            }
-            ScrabbleTournament tourn = new ScrabbleTournament();
-            tourn.run();
-            scoreUs += tourn.ourScore;
-            scoreThem += tourn.petesScore;
-        }
-        //StdOut.printf("Average score (Ours vs Theirs) after %d runs: %.4f vs %.4f ",totalRuns, scoreUs/totalRuns, scoreThem/totalRuns);
-
+        new ScrabbleTournament().run();
     }
 
     /**
@@ -49,7 +32,7 @@ public class ScrabbleTournament {
             }
         }
         for (int i = 0; i < players.length; i++) {
-            //StdOut.println(players[i].toString() + ": " + scores[i]);
+            StdOut.println(players[i].toString() + ": " + scores[i]);
         }
     }
 
@@ -58,7 +41,7 @@ public class ScrabbleTournament {
      * {0, 1}, or {0.5, 0.5}.
      */
     public double[] playGame(ScrabbleAI a, ScrabbleAI b) throws IllegalMoveException {
-        //StdOut.println(a + " vs " + b + ":");
+        StdOut.println(a + " vs " + b + ":");
         Board board = new Board();
         a.setGateKeeper(new GateKeeper(board, 0));
         b.setGateKeeper(new GateKeeper(board, 1));
@@ -70,11 +53,9 @@ public class ScrabbleTournament {
         }
         int s0 = board.getScore(0);
         int s1 = board.getScore(1);
-
         StdOut.print(board);
         StdOut.println("Final score: " + a + " " + s0 + ", " + b + " " + s1);
         StdOut.println();
-
         if (s0 > s1) {
             return new double[] {1, 0};
         } else if (s0 < s1) {
