@@ -92,7 +92,7 @@ public class Board {
     }
 
     /** Squares on the board (whether occupied by tiles or not). */
-    public char[][] squares;
+    private char[][] squares;
 
     /** Hands of the players. */
     private ArrayList<Character>[] hands;
@@ -455,7 +455,6 @@ public class Board {
             throw new IllegalMoveException("Board placement incorrect (gaps, overlapping tiles, edge of board).");
         }
         if (!wouldBeConnected(word, location, direction)) {
-            placeWord(word,location,direction);
             throw new IllegalMoveException("Board placement incorrect (gaps, overlapping tiles, edge of board).");
         }
         if (!wouldCreateOnlyLegalWords(word, location, direction)) {

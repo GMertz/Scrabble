@@ -11,7 +11,7 @@ public class Player implements ScrabbleAI
 
     public Player()
     {
-        searcher = new Searcher(new Eval());
+        searcher = new Searcher();
     }
 
     @Override
@@ -28,7 +28,6 @@ public class Player implements ScrabbleAI
         if (!isLetter(gateKeeper.getSquare(Location.CENTER)))
         {
             validSpots[Location.CENTER.getRow()][Location.CENTER.getColumn()] = true;
-            StdOut.println("Is first turn");
         }
 
         PriorityQueue<WordChoice> maxHeap = new PriorityQueue<>();
@@ -307,7 +306,7 @@ public class Player implements ScrabbleAI
         public WordChoice(String s, int score, Location start, Location direction)
         {
             string = s;
-            this.score = score;
+            this.score = gateKeeper.score(s,start,direction);
             this.start = start;
             this.dir = direction;
         }
@@ -321,23 +320,6 @@ public class Player implements ScrabbleAI
         public PlayWord publish()
         {
             return new PlayWord(string, start, dir);
-        }
-    }
-
-    public class Eval implements Searcher.Evaluator
-    {
-        /**
-         *
-         * @param c character to be evaluated
-         * @param row the row in which the character is to be placed
-         * @param col the column in which the character is to be placed
-         * @param isHorizontal is our search horizontal?
-         * @return
-         */
-        @Override
-        public int charEval(char c, int row, int col, boolean isHorizontal)
-        {
-            return Board.TILE_VALUES.get(c);
         }
     }
 }

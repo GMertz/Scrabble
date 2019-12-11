@@ -1,9 +1,5 @@
 import java.util.*;
 
-
-// TAKE OUT SCORING FOR '_'
-// FURTHEST REQUIRED CHARACTER
-
 /**
  * helper class to find the 'best', 'valid' word that fits the given 'template'
  * 'best': the word with maximum score
@@ -11,20 +7,18 @@ import java.util.*;
  * 'template': string in the form "_A____".
  *         in the above example, Searcher will search for words that are of length 6 and that have A as their second
  *         letter. Additionally, blanks will only be filled with characters in the 'bag'
- * 'bag': A length 7 string describing the letters that can be used to create words
- *
- * 'charEval': A function that evaluates the value gained from putting a character in the board at a given location
+ * 'bag': A length 7 string describing the letters that can be used to create words (the words in our hand)
  */
 public class Searcher
 {
-    private Trie trie;
+    private Trie trie; // used for finding words
 
-    private char[] target;
-    private int targetScore;
+    private char[] target; // word we are currently building
+    private int targetScore; // Score for the target word
 
     private int targetLen; // Length of our desired word
 
-    private int reqChar;
+    private int reqChar; // index of character that needs to be in the word
 
     PriorityQueue<Integer>[] charScores; // PriorityQueue used for traversing trie
 
@@ -33,23 +27,25 @@ public class Searcher
 
     int[][] evaluations; // Stores evaluations of characters (same dimension as charScores)
 
-    private int rowStart;
-    private int colStart;
-    private boolean isHorizontal;
+    private int rowStart; // Start of our search (x)
+    private int colStart; // start of our search (y)
+    private boolean isHorizontal; // is our search horizontal?
 
     private int layer; // which letter of the word are we currently looking for
 
-    private Evaluator eval;
+    private Evaluator eval; //class used for evaluating characters
 
+    // used so we dont need to recalculate char scores for layers we have visited before
     private boolean[] layerVisited;
 
-    private PriorityQueue<String> words;
-    HashMap<String, Integer> wordScores;
+    private PriorityQueue<String> words; // words we have found that fit the template
+    HashMap<String, Integer> wordScores; // scores for words above
+
     String bestWord;
     /** save enable.txt to trie **/
-    public Searcher(Evaluator e)
+    public Searcher()
     {
-        eval = e;
+        eval = new SimpleScorer();
         trie = new Trie(new In("enable1.txt"));
     }
 
@@ -73,16 +69,15 @@ public class Searcher
         return wordScores.get(bestWord);
     }
 
-    public PriorityQueue<String> GetAllWords() { return words; }
-    public HashMap<String,Integer> GetAllWordScores() { return wordScores; }
+
     public boolean HasWords() { return !words.isEmpty(); }
-    public boolean IsWord(String s){return trie.contains(s);}
 
     /** prepares for a new search (initializes a lot of random stuff) **/
     private void init(char[] temp, ArrayList<Character> hand)
     {
         this.template = Arrays.copyOf(temp,temp.length);
         reqChar = targetScore = -1;
+
         for (int i = 0; i < template.length; i++)
         {
             if (template[i] == '*')
@@ -121,6 +116,12 @@ public class Searcher
         bestWord = null;
     }
 
+    /**
+     * @param template template string used for search. Words found will conform to this template
+     * @param hand characters that we can use to build words
+     * @param searchStart start location of search
+     * @param direction direction of search
+     */
     public void search(char[] template, ArrayList<Character> hand, Location searchStart, Location direction)
     {
         rowStart = searchStart.getRow();
@@ -131,13 +132,16 @@ public class Searcher
         searchHelp();
     }
 
+    /**
+     * actual meat and potatoes of the search
+     */
     private void searchHelp()
     {
+        // trav is used to traverse the Trie
         Trie.Node trav = trie.GetHead();
-        Trie.Node tempNode;
         char tempC;
 
-        while(layer <= targetLen)
+        while(true)
         {
             if(trav.IsWord()) // word has been found!
             {
