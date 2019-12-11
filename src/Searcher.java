@@ -200,7 +200,8 @@ public class Searcher
             if (isHorizontal) col += layer;
             else row += layer;
 
-            sA = eval.charEval((char) ('a' + a),row, col, isHorizontal, false);
+            char c = (char) ('a' + a);
+            sA = eval.charEval(c, row, col, isHorizontal, !bag.containsKey(c));
             evaluations[layer][a] = sA;
         }
     }

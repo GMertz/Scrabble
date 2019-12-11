@@ -362,7 +362,7 @@ public class Player implements ScrabbleAI
                 templates[index] = perpendicularTemplate(row,col,isHorizontal? Location.HORIZONTAL: Location.VERTICAL);
             }
 
-            int wordModifier=0;
+            int wordModifier = 0;
             char[] temp = templates[index];
             if (temp.length != 1)
             {
@@ -374,16 +374,12 @@ public class Player implements ScrabbleAI
                     else sb.append(temp[i]);
                 }
 
+
                 String s = sb.toString();
-                if (gateKeeper.score())
+                if(!searcher.IsWord(s)) return -1;
+                else return gateKeeper.score(Character.toString(isBlank? Character.toUpperCase(c) : c) , new Location(row,col), isHorizontal? Location.HORIZONTAL: Location.VERTICAL);
             }
-
-
-            // Takes into account special tiles (double letter, triple letter),
-            // creation of other words (words that are created when c is inserted and that are perpendicular to direction)
-            // and the tiles inherent value
-            // IMPORTANT: We need to find a way to take blank characters into account
-            return Board.TILE_VALUES.get(c);
+            return isBlank ? 0 : Board.TILE_VALUES.get(c);
         }
     }
 }
