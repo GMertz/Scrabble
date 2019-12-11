@@ -212,7 +212,7 @@ public class Board {
         // Check squares within word
         for (char c : word.toCharArray()) {
             if (!location.isOnBoard()) { // Off edge of board
-                StdOut.println("Off Board!");
+                StdOut.printf("Off Board! %d %d\n",location.getRow(),location.getColumn());
                 return false;
             }
             char current = getSquare(location);
