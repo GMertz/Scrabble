@@ -20,9 +20,11 @@ public class Player implements ScrabbleAI
         this.gateKeeper = gateKeeper;
     }
 
+    /** chooses best move **/
     @Override
     public ScrabbleMove chooseMove()
     {
+        /** save valid playable spots on board **/
         validSpots = new boolean[Board.WIDTH][Board.WIDTH];
 
         if (!isLetter(gateKeeper.getSquare(Location.CENTER)))
@@ -30,6 +32,7 @@ public class Player implements ScrabbleAI
             validSpots[Location.CENTER.getRow()][Location.CENTER.getColumn()] = true;
         }
 
+        /** save words in priority queue to check highest scoring one **/
         PriorityQueue<WordChoice> maxHeap = new PriorityQueue<>();
 
         hand = gateKeeper.getHand();
@@ -37,16 +40,17 @@ public class Player implements ScrabbleAI
 
         for (Location direction: new Location[]{Location.VERTICAL, Location.HORIZONTAL})
         {
-                // If direction is vertical, then j is a column and k is kth square in this column
-                // If direction is horizontal, then j is a row and k is kth square in this row
+                /**If direction is vertical, then j is a column and k is kth square in this column
+                 * If direction is horizontal, then j is a row and k is kth square in this row
+                 **/
                 for (int j = 0; j < Board.WIDTH; j++)
                 {
                     Location square;
-                    // the window represents a row or a column (dependant on our search direction)
+                    /** the window represents a row or a column (dependant on our search direction) **/
                     char[] window = new char[Board.WIDTH];
                     int letters = 0, adjacents = 0;
 
-                    // Fill the window, count letters
+                    /** Fill the window, count letters **/
                     for (int i = 0; i < Board.WIDTH; i++)
                     {
                         int x;
@@ -83,7 +87,8 @@ public class Player implements ScrabbleAI
                         }
                     }
                     int i = 0;
-                    do // generate all templates
+                    /** generate all templates **/
+                    do
                     {
                         int x;
                         int y;
@@ -115,12 +120,12 @@ public class Player implements ScrabbleAI
 
                 }
         }
-        /*
+        /**
             1. For each 'template' (e.g. "A__L__"), find the best move
             2. Once all moves have been collected, pop the highest scoring move and play it
             3. If no moves were found, shuffle letters
-         */
-        // if no move has been found, exchange letters, otherwise return the best move
+         **/
+        /** if no move has been found, exchange letters, otherwise return the best move **/
 
         while(!maxHeap.isEmpty())
         {
@@ -148,8 +153,7 @@ public class Player implements ScrabbleAI
     }
 
 
-    // this could probably be improved by throwing out certain letters over others
-    // for now it does every tile
+    /** method to exchange tiles **/
     public ExchangeTiles DoExchange()
     {
         int [] letters = new int[26];
@@ -158,6 +162,7 @@ public class Player implements ScrabbleAI
         int vcount = 0;
         boolean[] choice = new boolean[hand.size()];
 
+        /** save hand in temp array, count vowels, and tally letters to see if there are duplicates in our hand **/
         for (int i = 0; i < hand.size(); i++) {
 
             temp = hand.get(i) - 'a';
@@ -171,6 +176,7 @@ public class Player implements ScrabbleAI
             }
         }
 
+        /** if there are duplicates of a letter, dump one of them **/
         for (int i = 0; i < letters.length; i++) {
                 int dump = letters[i] - 1;
                 int j = 0;
@@ -182,8 +188,12 @@ public class Player implements ScrabbleAI
                     }
                     j++;
                 }
-
         }
+
+        /** checks that we have less than 3 values
+         * (optimal is 3 vowels, 4 consonants) and if not,
+         * exchange the letters with the lowest frequency in the dictionary
+         * **/
         boolean problem = vcount>3;
         int lowest =  Integer.MAX_VALUE;
         int lowIndex = -1;
@@ -211,6 +221,7 @@ public class Player implements ScrabbleAI
 
     }
 
+    /** check if letter in hand is vowel for doExchange **/
     public boolean isVowel(int letter) {
         if (letter == 0 || letter == 4 || letter == 8 || letter == 14 || letter == 20){ //0, 4, 8, 14, 20
             return true;
@@ -218,6 +229,7 @@ public class Player implements ScrabbleAI
         return false;
     }
 
+    /** check adjacent letters **/
     private boolean isAdjacent(int x, int y)
     {
         Location up = new Location(x, y+1);
@@ -231,21 +243,27 @@ public class Player implements ScrabbleAI
                 (isOnBoard(left) && isLetter(gateKeeper.getSquare(left))));
     }
 
+    /** check if is on board **/
     private boolean isOnBoard(Location l)
     {
         int c =l.getColumn(), r = l.getRow();
         return (c < Board.WIDTH && r < Board.WIDTH && c > -1 && r > -1);
     }
 
+
     public static boolean isLetter(char c)
     {
         return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
     }
+
+
     public static int CharToInt(char c) {return c < 'a' ? c-'A' : c-'a'; }
 
-    // returns a template string for the column/row perpendicular to location l
-    // Only considers letters that are directly adjacent to l in the opposite(d) direction
-    // used for validity checking
+    /** returns a template string for the column/row perpendicular to location l
+     * Only considers letters that are directly adjacent to l in the opposite(d) direction
+     * used for validity checking
+     **/
+    
     public char[] perpendicularTemplate(int row, int col, Location d)
     {
         if (!validSpots[row][col]) return new char[]{' '}; //no adjacent characters
