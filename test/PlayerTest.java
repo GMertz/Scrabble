@@ -1,4 +1,4 @@
-import edu.princeton.cs.algs4.StdOut;
+/*
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +33,7 @@ class PlayerTest {
     void doExchange() {
         char[] sampleHand = new char[] {'h', 'i', 'p', 'e', 't', 'e', 'r'};
 
-        player.hand = new ArrayList<Character>();//Arrays.asList(sampleHand);
+        //player.hand = new ArrayList<Character>();//Arrays.asList(sampleHand);
         for (char c :
                 sampleHand) {
             player.hand.add(c);
@@ -54,4 +54,4 @@ class PlayerTest {
         assertTrue(player.isVowel(letter));
 
     }
-}
+}*/

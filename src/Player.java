@@ -17,6 +17,7 @@ public class Player implements ScrabbleAI
 
     private ArrayList<Character> hand;
     private int handSize;
+    boolean[][] validSpots;
 
     public Player()
     {
@@ -33,7 +34,7 @@ public class Player implements ScrabbleAI
     public ScrabbleMove chooseMove()
     {
         // 2D bool array of Board.WIDTH X Board.WIDTH
-        boolean[][] validSpots = new boolean[Board.WIDTH][Board.WIDTH];
+        validSpots = new boolean[Board.WIDTH][Board.WIDTH];
 
         if (!isLetter(gateKeeper.getSquare(Location.CENTER)))
         {
@@ -251,9 +252,54 @@ public class Player implements ScrabbleAI
     // returns a template string for the column/row perpendicular to location l
     // Only considers letters that are directly adjacent to l in the opposite(d) direction
     // used for validity checking
-    public String perpendicularTemplate(Location l, Location d)
+    public char[] perpendicularTemplate(int row, int col, Location d)
     {
-        return new String();
+        if (!validSpots[row][col]) return null; //no adjacent characters
+
+        Stack<Character> sb1 = new Stack<>();
+        Queue<Character> sb2 = new LinkedList<>();
+
+        char c;
+        Location perp = d.opposite();
+        int dX = d.getRow();
+        int dY = d.getColumn();
+
+        int x;
+        int y;
+        x = row-dX;
+        y = row-dY;
+        while ((dX > 0 && dY > 0) && isLetter(c = gateKeeper.getSquare(new Location(x, y))))
+        {
+            sb1.push(c);
+            x -= dX;
+            y -=dY;
+        }
+
+        x = row+dX;
+        y = row+dY;
+        while ((dX < Board.WIDTH-1 && dY < Board.WIDTH-1) && isLetter(c = gateKeeper.getSquare(new Location(x, y))))
+        {
+            sb2.add(c);
+            x += dX;
+            y += dY;
+        }
+
+        char[] ret = new char[sb1.size()+sb1.size()+2];
+
+        ret[0] = (char)sb1.size();
+        int i = 1;
+        while(!sb1.isEmpty())
+        {
+            ret[i] = sb1.pop();
+            i+=1;
+        }
+        ret[i] = ' ';
+        while(!sb2.isEmpty())
+        {
+            ret[i] = sb2.poll();
+            i+=1;
+        }
+        return ret;
     }
 
     class WordChoice implements Comparable
@@ -293,9 +339,31 @@ public class Player implements ScrabbleAI
          * @param isHorizontal is our search horizontal?
          * @return
          */
-        @Override
-        public int charEval(char c, int row, int col,boolean isHorizontal)
+        public char[][] templates;
+        Eval()
         {
+            templates = new char[Board.WIDTH][];
+        }
+        @Override
+        public int charEval(char c, int row, int col, boolean isHorizontal, boolean isBlank)
+        {
+            int index;
+            if (isHorizontal) // if were searching horizontally, column will be our index into evals
+            {
+                index = col;
+            }
+            else
+            {
+                index = row;
+            }
+
+            if (templates[index] == null)
+            {
+                templates[index] = perpendicularTemplate(row,col,isHorizontal? Location.HORIZONTAL: Location.VERTICAL);
+            }
+            else if (templates[index] == [""])
+
+
             // Takes into account special tiles (double letter, triple letter),
             // creation of other words (words that are created when c is inserted and that are perpendicular to direction)
             // and the tiles inherent value
