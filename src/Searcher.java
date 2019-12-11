@@ -46,12 +46,14 @@ public class Searcher
     private PriorityQueue<String> words;
     HashMap<String, Integer> wordScores;
     String bestWord;
+    /** save enable.txt to trie **/
     public Searcher(Evaluator e)
     {
         eval = e;
         trie = new Trie(new In("enable1.txt"));
     }
 
+    /** returns 'best' word **/
     public String GetBestWord()
     {
         if(bestWord == null)
@@ -60,6 +62,8 @@ public class Searcher
         }
         return bestWord;
     }
+
+    /** returns 'best' score **/
     public int GetBestScore()
     {
         if(bestWord == null)
@@ -68,10 +72,12 @@ public class Searcher
         }
         return wordScores.get(bestWord);
     }
+
     public PriorityQueue<String> GetAllWords() { return words; }
     public HashMap<String,Integer> GetAllWordScores() { return wordScores; }
     public boolean HasWords() { return !words.isEmpty(); }
 
+    /** prepares for a new search (initializes a lot of random stuff) **/
     private void init(char[] temp, ArrayList<Character> hand)
     {
         this.template = Arrays.copyOf(temp,temp.length);
