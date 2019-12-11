@@ -12,13 +12,13 @@ public class Trie
     private int [] freqarr = new int[26];
 
     /** make the head of the trie null **/
-    public Trie()
+    Trie()
     {
         head = new Node('\0');
     }
 
     /** read the file **/
-    public Trie(In inFile)
+    Trie(In inFile)
     {
         head = new Node('\0');
         for (String line : inFile.readAllLines())
@@ -28,7 +28,8 @@ public class Trie
     }
 
 
-    public Node GetHead(){return head;}
+    int GetFrequency(int index){ return freqarr[index]; }
+    Node GetHead(){return head;}
 
     public void insert(String s) { insertHelp(s,0, head); }
 
@@ -68,48 +69,38 @@ public class Trie
             n.children[letter].parent = n;
 
             /** as we insert the nodes, we note the frequency at which each letter appears**/
-            ++ freqarr [letter];
+            ++freqarr [letter];
         }
         return n;
     }
 
-    public class Node
+    class Node
     {
         private char c;
         private boolean isWord = false;
         private Node[] children;
         private Node parent;
 
-       /** trie is composed of nodes. Each node has 26 children. **/
-        public Node(char c)
+       /** trie is composed of nodes. Each node has 26 children (one for each letter of the alphabet). **/
+        Node(char c)
         {
             this.c = c;
             children = new Node[26]; // one slot for each english letter
         }
-
-        public Node GetChild(char c)
+        Node GetChild(char c)
         {
             return children[c-'a'];
         }
-        public Node GetChild(int i)
+        Node GetChild(int i)
         {
             return children[i];
         }
-        public char Get()
+        char Get()
         {
             return c;
         }
-
-        public boolean IsWord(){return isWord;}
-
-
-        public Node GetParent() { return parent; }
-    }
-
-    public int getFreaqy(int index){
-
-        return freqarr[index];
-
+        boolean IsWord(){return isWord;}
+        Node GetParent() { return parent; }
     }
 }
 

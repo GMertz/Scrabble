@@ -25,7 +25,7 @@ public class Searcher
     private HashMap<Character, Integer> bag;
     private char[] template;
 
-    int[][] evaluations; // Stores evaluations of characters (same dimension as charScores)
+    private int[][] evaluations; // Stores evaluations of characters (same dimension as charScores)
 
     private int rowStart; // Start of our search (x)
     private int colStart; // start of our search (y)
@@ -39,9 +39,9 @@ public class Searcher
     private boolean[] layerVisited;
 
     private PriorityQueue<String> words; // words we have found that fit the template
-    HashMap<String, Integer> wordScores; // scores for words above
+    private HashMap<String, Integer> wordScores; // scores for words above
 
-    String bestWord;
+    private String bestWord;
     /** save enable.txt to trie **/
     public Searcher()
     {
@@ -352,9 +352,9 @@ public class Searcher
         }
     }
 
-    public int getFreaqy(int index){
+    public int GetFrequency(int index){
 
-        return trie.getFreaqy(index);
+        return trie.GetFrequency(index);
 
     }
 }

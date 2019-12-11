@@ -40,17 +40,17 @@ public class Player implements ScrabbleAI
 
         for (Location direction: new Location[]{Location.VERTICAL, Location.HORIZONTAL})
         {
-                /**If direction is vertical, then j is a column and k is kth square in this column
+                /*If direction is vertical, then j is a column and k is kth square in this column
                  * If direction is horizontal, then j is a row and k is kth square in this row
-                 **/
+                 */
                 for (int j = 0; j < Board.WIDTH; j++)
                 {
                     Location square;
-                    /** the window represents a row or a column (dependant on our search direction) **/
+                    /* the window represents a row or a column (dependant on our search direction) */
                     char[] window = new char[Board.WIDTH];
                     int letters = 0, adjacents = 0;
 
-                    /** Fill the window, count letters **/
+                    /* Fill the window, count letters */
                     for (int i = 0; i < Board.WIDTH; i++)
                     {
                         int x;
@@ -87,7 +87,7 @@ public class Player implements ScrabbleAI
                         }
                     }
                     int i = 0;
-                    /** generate all templates **/
+                    /* generate all templates */
                     do
                     {
                         int x;
@@ -120,12 +120,12 @@ public class Player implements ScrabbleAI
 
                 }
         }
-        /**
+        /*
             1. For each 'template' (e.g. "A__L__"), find the best move
             2. Once all moves have been collected, pop the highest scoring move and play it
             3. If no moves were found, shuffle letters
-         **/
-        /** if no move has been found, exchange letters, otherwise return the best move **/
+         */
+        /* if no move has been found, exchange letters, otherwise return the best move */
 
         while(!maxHeap.isEmpty())
         {
@@ -199,8 +199,8 @@ public class Player implements ScrabbleAI
         int lowIndex = -1;
         while (vcount!=3){
             for (int i = 0; i < hand.size(); i++) {
-                if(temphand[i] != -2 && isVowel(temphand[i])==problem && searcher.getFreaqy(temphand[i])<lowest){
-                    lowest=searcher.getFreaqy(temphand[i]);
+                if(temphand[i] != -2 && isVowel(temphand[i])==problem && searcher.GetFrequency(temphand[i])<lowest){
+                    lowest=searcher.GetFrequency(temphand[i]);
                     lowIndex = i;
 
                 }
