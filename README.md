@@ -1,4 +1,5 @@
-# Pseudo Code
+## The Smooth Criminal
+
 1. Use a trie to store all of the words in enable1.txt. 
    - This allows us to quickly find words that fit a search template (of the form “\_a\_\_” where blanks will be filled with letters from our hand) 
    - Using the Trie, along with some specific rules on our search, allows us to avoid many false alarms that would occur through straight brute forcing (simply trying all combinations). 
@@ -14,3 +15,13 @@
 
 5. With all the words gathered, we start furiously polling them from the queue until we find one that the gatekeeper will accept. 
 If we don’t find such a word, we do a smart Exchange, which prioritizes returning non-vowel duplicate letters.
+
+---
+
+The SmoothCriminal class was written by us ([Ryan Crim](https://github.com/ryncrm), [Lexie Boren](https://github.com/lexieboren), and Falcon Garfein) for the final project of our Algorithms class. Our agent beat all other agents created by students in the class, and didn't drop a single game in a two game round robin tournament.
+
+
+
+
+all of the other classes that set up the actual game were created by [Peter Drake](https://github.com/PeterDrake).
+
