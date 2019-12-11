@@ -1,3 +1,4 @@
+/*
 import com.sun.source.tree.AssertTree;
 import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,7 @@ class SearcherTest
         DICTIONARY = new HashSet<>();
         DICTIONARY.addAll(Arrays.asList(in.readAllLines()));
 
-        search = new Searcher(new Searcher.SimpleScorer());
+        //search = new Searcher(new Searcher.SimpleScorer());
 
         hand = new ArrayList<Character>();
         for (char c: sampleHand)
@@ -35,8 +36,6 @@ class SearcherTest
         }
 
         search.search(temp.toCharArray(),hand,new Location(1,1),new Location(1,1));
-        que = search.GetAllWords();
-        scores = search.GetAllWordScores();
         String s = que.poll();
     }
 
@@ -95,4 +94,4 @@ class SearcherTest
         assertTrue(ret.charAt(aIndex) == 'a' &&ret.charAt(rIndex) == 'r' && flag);
 
     }
-}
+}*/
