@@ -329,13 +329,13 @@ public class Searcher
 
     public interface Evaluator
     {
-        int charEval(char c, int row, int col, boolean horizontal, boolean isBlank);
+        int charEval(char c, int row, int col, boolean horizontal);
     }
 
     public static class SimpleScorer implements Evaluator
     {
         @Override
-        public int charEval(char c, int row, int col, boolean horizontal, boolean isBlank)
+        public int charEval(char c, int row, int col, boolean horizontal)
         {
             return ScoreChar(c);
         }

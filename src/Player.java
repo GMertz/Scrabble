@@ -136,8 +136,18 @@ public class Player implements ScrabbleAI
          */
         // if no move has been found, exchange letters, otherwise return the best move
 
-        if (maxHeap.isEmpty()) return DoExchange();
-        return maxHeap.poll().publish();
+        while(!maxHeap.isEmpty())
+        {
+            try
+            {
+                WordChoice wc = maxHeap.poll();
+                gateKeeper.verifyLegality(wc.string,wc.start,wc.dir);
+                return wc.publish();
+            }
+            catch (IllegalMoveException e) { }
+        }
+        return DoExchange();
+
     }
     public char[] createTemplate(char[] window, int start)
     {
@@ -210,8 +220,6 @@ public class Player implements ScrabbleAI
                 choice[i] = false;
             }
         }
-
-
 
         return new ExchangeTiles(choice);
 
@@ -339,35 +347,30 @@ public class Player implements ScrabbleAI
          * @param isHorizontal is our search horizontal?
          * @return
          */
-        public char[][] templates;
-        Eval()
-        {
-            templates = new char[Board.WIDTH][];
-        }
         @Override
-        public int charEval(char c, int row, int col, boolean isHorizontal, boolean isBlank)
+        public int charEval(char c, int row, int col, boolean isHorizontal)
         {
-            int index;
-            if (isHorizontal) // if were searching horizontally, column will be our index into evals
-            {
-                index = col;
-            }
-            else
-            {
-                index = row;
-            }
-
-            if (templates[index] == null)
-            {
-                templates[index] = perpendicularTemplate(row,col,isHorizontal? Location.HORIZONTAL: Location.VERTICAL);
-            }
-            else if (templates[index] == [""])
-
-
-            // Takes into account special tiles (double letter, triple letter),
-            // creation of other words (words that are created when c is inserted and that are perpendicular to direction)
-            // and the tiles inherent value
-            // IMPORTANT: We need to find a way to take blank characters into account
+//            int index;
+//            if (isHorizontal) // if were searching horizontally, column will be our index into evals
+//            {
+//                index = col;
+//            }
+//            else
+//            {
+//                index = row;
+//            }
+//
+//            if (templates[index] == null)
+//            {
+//                templates[index] = perpendicularTemplate(row,col,isHorizontal? Location.HORIZONTAL: Location.VERTICAL);
+//            }
+//            else if (templates[index] == [""])
+//
+//
+//            // Takes into account special tiles (double letter, triple letter),
+//            // creation of other words (words that are created when c is inserted and that are perpendicular to direction)
+//            // and the tiles inherent value
+//            // IMPORTANT: We need to find a way to take blank characters into account
             return Board.TILE_VALUES.get(c);
         }
     }

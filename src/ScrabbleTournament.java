@@ -8,7 +8,7 @@ public class ScrabbleTournament {
         // List contestants here
         players = new ScrabbleAI[] {
           new Player(),
-          new Incrementalist()
+          new Player()
         };
     }
 
