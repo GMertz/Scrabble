@@ -4,7 +4,7 @@ import java.util.*;
     1. Searcher -> Gabe
     2. Evaluator + perpendicularTemplate -> Ryan
     3. Data structures in find loop + edge case verification -> Lexie
-    4. DoExchange _> Falcon
+    4. DoExchange -> Falcon
 
  */
 
@@ -33,108 +33,116 @@ public class Player implements ScrabbleAI
     public ScrabbleMove chooseMove()
     {
         // 2D bool array of Board.WIDTH X Board.WIDTH
-        HashSet<Location> validSpots = new HashSet<>(Board.WIDTH*Board.WIDTH);
-        PriorityQueue<MoveChoice> maxHeap = new PriorityQueue<MoveChoice>();
+        boolean[][] validSpots = new boolean[Board.WIDTH][Board.WIDTH];
+
+        if (!isLetter(gateKeeper.getSquare(Location.CENTER)))
+        {
+            validSpots[Location.CENTER.getRow()][Location.CENTER.getColumn()] = true;
+            StdOut.println("Is first turn");
+        }
+
+        PriorityQueue<WordChoice> maxHeap = new PriorityQueue<>();
 
         hand = gateKeeper.getHand();
         handSize = hand.size();
 
         String template; // "_A__" -> "LATE"
 
-
         for (Location direction: new Location[]{Location.VERTICAL, Location.HORIZONTAL})
         {
-            for (int windowSize = handSize; windowSize >= 2 ; windowSize--)
-            {
                 // If direction is vertical, then j is a column and k is kth square in this column
                 // If direction is horizontal, then j is a row and k is kth square in this row
                 for (int j = 0; j < Board.WIDTH; j++)
                 {
-                    /*
-                        Each window will be almost identical to the last except that the the second character is now the
-                        first and the last character is a new character if one exists
-                    */
                     Location square;
-                    char[] window = new char[windowSize]; // Initialize a 'window'
-                    // denotes where the actual start of our template is, using this removes the need to rewrite elements
-                    // of the template
-                    int templateStart = 0;
+                    // the window represents a row or a column (dependant on our search direction)
+                    char[] window = new char[Board.WIDTH];
+                    int letters = 0, adjacents = 0;
 
-                    {// initialize window
-                        for (int i = 0; i < windowSize-1; i++)
-                        {
-                            if(direction == Location.VERTICAL) square = new Location(i,j);
-                            else square = new Location(j,i);
-                            char c =  gateKeeper.getSquare(square);
-                            window[i] = isLetter(c) ? c : ' ';
-                        }
-                    }
-
-                    // May be an ISSUE
-                    for (int k = windowSize; k < Board.WIDTH-windowSize; k++)
+                    // Fill the window, count letters
+                    for (int i = 0; i < Board.WIDTH; i++)
                     {
-                        // index for placing the next letter into our wrapping window
-                        int p = ((windowSize-1)+templateStart) % windowSize;
+                        int x;
+                        int y;
 
-
-                        if(direction == Location.VERTICAL) square = new Location(j,k);
-                        else square = new Location(k,j);
-
-                        char c = gateKeeper.getSquare(square);
-
-                        window[p] = isLetter(c) ? c : '_';
-
-
-                        boolean flag = false;
-                        for (int i = 0; i < windowSize; i++)
+                        if(direction == Location.VERTICAL)
                         {
-                            Location l;
-                            if(direction == Location.VERTICAL) l = new Location(j,k+i);
-                            else l = new Location(k+i,j);
+                            x = i;
+                            y = j;
+                        }
+                        else
+                        {
+                            x = j;
+                            y = i;
+                        }
+                        square = new Location(x,y);
 
-                            //account for this vvv
-//                            if(isLetter(gateKeeper.getSquare(l)))
-//                            {
-//                               flag = false;
-//                            }
-                            if (validSpots.contains(l))
-                            {
-                                flag = true;
-                                break;
-                            }
-                            else if(isAdjacent(l))
-                            {
-                                validSpots.add(l);
-                                flag = true;
-                                break;
-                            }
+                        char c =  gateKeeper.getSquare(square);
+
+                        if(isLetter(c))
+                        {
+                            window[i] = c;
+                            letters++;
+                        }
+                        else if (validSpots[x][y] || isAdjacent(x,y))
+                        {
+                            validSpots[x][y] = true;
+                            window[i] = '*';
+                            adjacents += 1;
+                        }
+                        else
+                        {
+                            window[i] = '_';
+                        }
+                    }
+                    int i = 0;
+                    do // generate all templates
+                    {
+                        int x;
+                        int y;
+                        if(direction == Location.VERTICAL)
+                        {
+                            x = i;
+                            y = j;
+                        }
+                        else
+                        {
+                            x = j;
+                            y = i;
                         }
 
-                        if(!flag) continue;
-                        StringBuilder sb;
-                        String temp = buildTemplate(window,templateStart);
-                        // Account for extra letters continuing downward or upward from temp!
-                        /*
-                            Check if top or bottom is adjacent to letter, if so traverse downwards/upwards
-                            until we find a blank, adding each char to template.
-                         */
+                        if(letters >= (Board.WIDTH - i) || adjacents <= 0) break;
+                        if(i == 0 || window[i-1] == '_' || window[i-1] == '*' )
+                        {
+                            square = new Location(x,y);
+                            searcher.search(createTemplate(window, i), hand, square ,direction);
+                            if (searcher.HasWords())
+                            {
+                                WordChoice wc = new WordChoice(searcher.GetBestWord(), searcher.GetBestScore(), square, direction);
+                                maxHeap.add(wc);
+                            }
+                        }
+                        if (!(window[i] == '_' || window[i] == '*')) letters--;
+                        if (validSpots[x][y]) adjacents --;
+                    }while(++i < Board.WIDTH);
 
-                        //maxHeap.add(new MoveChoice(searcher.search(temp,hand),new Location(),direction));
-
-                    }
                 }
-                // check for best word here
-            }
         }
-        /*
-            1. For each 'template' (e.g. "A__L__"), find the best move
-            2. Once all moves have been collected, pop the highest scoring move and play it
-            3. If no moves were found, shuffle letters
-         */
-        // if no move has been found, exchange letters, otherwise return the best move
         if (maxHeap.isEmpty()) return DoExchange();
         return maxHeap.poll().publish();
     }
+    public char[] createTemplate(char[] window, int start)
+    {
+        char[] ret = new char[Board.WIDTH-start];
+        int k = 0;
+        for (int i = start; i < Board.WIDTH; ++i)
+        {
+            ret[k] = window[i];
+            k++;
+        }
+        return ret;
+    }
+
 
     // this could probably be improved by throwing out certain letters over others
     // for now it does every tile
@@ -146,11 +154,8 @@ public class Player implements ScrabbleAI
         return new ExchangeTiles(choice);
     }
 
-    private boolean isAdjacent(Location l)
+    private boolean isAdjacent(int x, int y)
     {
-        int x = l.getRow();
-        int y = l.getColumn();
-
         Location up = new Location(x, y+1);
         Location down = new Location(x, y-1);
         Location left = new Location(x-1,y);
@@ -174,20 +179,6 @@ public class Player implements ScrabbleAI
     }
     public static int CharToInt(char c) {return c < 'a' ? c-'A' : c-'a'; }
 
-    public String buildTemplate(char[] window, int start)
-    {
-        StringBuilder bob = new StringBuilder(window.length);
-        for (int i = start; i < window.length; i++)
-        {
-            bob.append(window[i]);
-        }
-        for (int i = 0; i < start; i++)
-        {
-            bob.append(window[i]);
-        }
-        return bob.toString();
-    }
-
     // returns a template string for the column/row perpendicular to location l
     // Only considers letters that are directly adjacent to l in the opposite(d) direction
     // used for validity checking
@@ -196,14 +187,14 @@ public class Player implements ScrabbleAI
         return new String();
     }
 
-    class MoveChoice implements Comparable
+    class WordChoice implements Comparable
     {
         private int score;
         private String string;
         private Location start;
         private Location dir;
 
-        public MoveChoice(String s, int score, Location start, Location direction)
+        public WordChoice(String s, int score, Location start, Location direction)
         {
             string = s;
             this.score = score;
@@ -214,7 +205,7 @@ public class Player implements ScrabbleAI
         @Override
         public int compareTo(Object o)
         {
-            return ((MoveChoice)o).score - this.score;
+            return ((WordChoice)o).score - this.score;
         }
 
         public PlayWord publish()
@@ -239,6 +230,7 @@ public class Player implements ScrabbleAI
             // Takes into account special tiles (double letter, triple letter),
             // creation of other words (words that are created when c is inserted and that are perpendicular to direction)
             // and the tiles inherent value
+            // IMPORTANT: We need to find a way to take blank characters into account
             return Board.TILE_VALUES.get(c);
         }
     }

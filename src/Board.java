@@ -92,7 +92,7 @@ public class Board {
     }
 
     /** Squares on the board (whether occupied by tiles or not). */
-    private char[][] squares;
+    public char[][] squares;
 
     /** Hands of the players. */
     private ArrayList<Character>[] hands;
@@ -206,15 +206,28 @@ public class Board {
         // Check for tile right before word
         Location before = location.antineighbor(direction);
         if (before.isOnBoard() && isOccupied(before)) {
+            StdOut.println("Tile Before!");
             return false;
         }
         // Check squares within word
         for (char c : word.toCharArray()) {
             if (!location.isOnBoard()) { // Off edge of board
+                StdOut.println("Off Board!");
                 return false;
             }
             char current = getSquare(location);
             if ((c == ' ') != (Character.isAlphabetic(current))) {
+                StdOut.printf("{%s} Overlap!%d %d %s\n",word,location.getRow(),location.getColumn(),direction == Location.HORIZONTAL ? "Horiz": "Vert");
+                for (char[] row : squares)
+                {
+                    for (char r : row)
+                    {
+                        StdOut.printf("%c",r);
+                    }
+                    StdOut.println();
+                }
+
+
                 // Tile played on top of existing tile or gap in word where there is no tile
                 return false;
             }
@@ -222,6 +235,7 @@ public class Board {
         }
         // Check for tile right after word
         if (location.isOnBoard() && isOccupied(location)) {
+            StdOut.println("Tile After Word!");
             return false;
         }
         // No problems!
@@ -449,15 +463,20 @@ public class Board {
             throw new IllegalMoveException("Word must be at least two letters long.");
         }
         if (!canBeDrawnFromHand(word, hand)) {
+            StdOut.printf("[%s]->{%s}", word, hand.toString());
             throw new IllegalMoveException("Hand does not contain sufficient tiles to play word.");
         }
         if (!canBePlacedOnBoard(word, location, direction)) {
             throw new IllegalMoveException("Board placement incorrect (gaps, overlapping tiles, edge of board).");
         }
         if (!wouldBeConnected(word, location, direction)) {
+            StdOut.printf("NOT CONNECTED: %s, %d, %d (%s)",word, location.getRow(),location.getColumn(),direction == Location.HORIZONTAL ? "Horiz": "Vert");
+            placeWord(word,location,direction);
+            StdOut.printf(toString());
             throw new IllegalMoveException("Board placement incorrect (gaps, overlapping tiles, edge of board).");
         }
         if (!wouldCreateOnlyLegalWords(word, location, direction)) {
+            StdOut.printf("Invalid: |%s|\n",word);
             throw new IllegalMoveException("Invalid word created.");
         }
     }

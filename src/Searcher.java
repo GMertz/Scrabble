@@ -20,14 +20,16 @@ public class Searcher
     private Trie trie;
 
     private char[] target;
-    private int targetScore = -1;
+    private int targetScore;
 
     private int targetLen; // Length of our desired word
+
+    private int reqChar;
 
     PriorityQueue<Integer>[] charScores; // PriorityQueue used for traversing trie
 
     private HashMap<Character, Integer> bag;
-    private String template;
+    private char[] template;
 
     int[][] evaluations; // Stores evaluations of characters (same dimension as charScores)
 
@@ -68,12 +70,25 @@ public class Searcher
     }
     public PriorityQueue<String> GetAllWords() { return words; }
     public HashMap<String,Integer> GetAllWordScores() { return wordScores; }
+    public boolean HasWords() { return !words.isEmpty(); }
 
-    private void init(String temp, ArrayList<Character> hand)
+    private void init(char[] temp, ArrayList<Character> hand)
     {
-        this.template = temp.toLowerCase();
-        targetLen = template.length();
-        target = template.toCharArray();
+        this.template = Arrays.copyOf(temp,temp.length);
+        reqChar = targetScore = -1;
+        for (int i = 0; i < template.length; i++)
+        {
+            if (template[i] == '*')
+            {
+                template[i] = '_';
+                if(reqChar == -1) reqChar = i;
+            }
+
+            template[i] = Character.toLowerCase(template[i]);
+        }
+
+        targetLen = template.length;
+        target = new char[targetLen];
 
         bag = new HashMap<>();
 
@@ -96,9 +111,10 @@ public class Searcher
 
         words = new PriorityQueue<>(new CompareStrings());
         wordScores = new HashMap<>();
+        bestWord = null;
     }
 
-    public void search(String template, ArrayList<Character> hand, Location searchStart, Location direction)
+    public void search(char[] template, ArrayList<Character> hand, Location searchStart, Location direction)
     {
         rowStart = searchStart.getRow();
         colStart = searchStart.getColumn();
@@ -120,13 +136,13 @@ public class Searcher
             {
                 AddWord();
             }
-            //StdOut.printf("\n----------Layer: %d [%s]\n---------",layer,new String(target));
             if(layer == targetLen) // if we are at our max length
             {
+                if(layer == 0) return;
                 DecrementLayer();
                 trav = trav.GetParent();
             }
-            else if (template.charAt(layer) == '_')
+            else if (template[layer] == '_')
             {
                 if (!layerVisited[layer])
                 {
@@ -135,8 +151,7 @@ public class Searcher
                 }
                 if(charScores[layer].isEmpty()) // if there are no possible paths to take
                 {
-                    if(layer == 0) return; // no word was found :(
-
+                    if(layer == 0) return;
                     DecrementLayer();
                     trav = trav.GetParent();
                 }
@@ -150,18 +165,18 @@ public class Searcher
             }
             else // If there is a specified letter in the template
             {
-                tempC = template.charAt(layer);
-                tempNode = trav.GetChild(tempC);
+                tempC = template[layer];
 
-                if (tempNode == null || layerVisited[layer])
+                if (trav.GetChild(tempC) == null || layerVisited[layer])
                 {
+                    if(layer == 0) return;
                     DecrementLayer();
                     trav = trav.GetParent();
                 }
                 else
                 {
                     IncrementLayer(tempC);
-                    trav = tempNode;
+                    trav = trav.GetChild(tempC);
                 }
             }
         }
@@ -177,14 +192,8 @@ public class Searcher
 
             sA = eval.charEval((char) ('a' + a),row, col, isHorizontal);
             evaluations[layer][a] = sA;
-            //StdOut.printf("|%d, %d| ",a, sA);
         }
-//        else
-//        {
-//            StdOut.printf("{%d} ",evaluations[layer][a]);
-//        }
     }
-
 
     private void ScoreLetters(Trie.Node trav)
     {
@@ -225,17 +234,17 @@ public class Searcher
     {
         layerVisited[layer] = false;
         layer -= 1;
-        char tempC = target[layer];
+        char tempC = Character.toLowerCase(target[layer]);
 
-        if (!Player.isLetter(template.charAt(layer)))
+        if (!Player.isLetter(template[layer]))
         {
             if (bag.containsKey(tempC))
             {
-                bag.replace(tempC, bag.get(tempC)+1);
+                bag.replace(tempC, bag.get(tempC) + 1);
             }
             else
             {
-                bag.replace('_', bag.get('_')+1);
+                bag.replace('_', bag.get('_') + 1);
             }
         }
         targetScore -= evaluations[layer][lowerCaseToInt(tempC)];
@@ -258,7 +267,6 @@ public class Searcher
     private void IncrementLayer(int val)
     {
         char let = (char)('a'+val);
-        target[layer] = let; // add letter to our template
 
         // if letter is in our hand (bag) then decrement it, otherwise decrement '_'
         if (bag.containsKey(let))
@@ -268,27 +276,36 @@ public class Searcher
         else
         {
             bag.replace('_', bag.get('_')-1);
+            let = Character.toUpperCase(let);
         }
 
+        target[layer] = let; // add letter to our template
         targetScore += evaluations[layer][val];
         layer += 1;
     }
 
     private int lowerCaseToInt(char c) { return c-'a'; }
+
     private void AddWord()
     {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < layer; i++)
+
+        for (int i = 0; i < layer; ++i)
         {
-            sb.append(target[i]);
+            sb.append(template[i] =='_'? target[i] : ' ');
         }
 
         String s = sb.toString();
-
-        if (wordScores.containsKey(s)) return;
+        if (layer <= reqChar || wordScores.containsKey(s) || ((layer < targetLen-1) && template[layer+1] != '_'))
+        {
+            return;
+        }
         wordScores.put(s,targetScore);
         words.add(s);
+        //StdOut.printf("Found Word: |%s| ",);
     }
+
+
     class CompareScores implements Comparator<Integer>
     {
         @Override

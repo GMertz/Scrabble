@@ -34,7 +34,7 @@ class SearcherTest
             hand.add(c);
         }
 
-        search.search(temp,hand,new Location(1,1),new Location(1,1));
+        search.search(temp.toCharArray(),hand,new Location(1,1),new Location(1,1));
         que = search.GetAllWords();
         scores = search.GetAllWordScores();
         String s = que.poll();
@@ -43,7 +43,7 @@ class SearcherTest
     @Test
     void searchFindsAllValidWords()
     {
-        search.search(temp,hand,new Location(1,1),new Location(1,1));
+        search.search(temp.toCharArray(),hand,new Location(1,1),new Location(1,1));
         for (String s : que)
         {
             if (DICTIONARY.contains(s))
@@ -74,8 +74,6 @@ class SearcherTest
             StdOut.printf("|%s|",s);
             StdOut.printf("|%d|\n",scores.get(s));
         }
-
-
     }
     //@Test
     void searchedWordIsCorrect()
@@ -84,7 +82,7 @@ class SearcherTest
         int aIndex = 0;
         int rIndex = 2;
 
-        search.search(temp,hand,new Location(1,1),new Location(1,1));
+        search.search(temp.toCharArray(),hand,new Location(1,1),new Location(1,1));
 
         String ret = search.GetBestWord();
 
