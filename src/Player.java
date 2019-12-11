@@ -128,6 +128,13 @@ public class Player implements ScrabbleAI
 
                 }
         }
+        /*
+            1. For each 'template' (e.g. "A__L__"), find the best move
+            2. Once all moves have been collected, pop the highest scoring move and play it
+            3. If no moves were found, shuffle letters
+         */
+        // if no move has been found, exchange letters, otherwise return the best move
+
         if (maxHeap.isEmpty()) return DoExchange();
         return maxHeap.poll().publish();
     }
@@ -146,12 +153,74 @@ public class Player implements ScrabbleAI
 
     // this could probably be improved by throwing out certain letters over others
     // for now it does every tile
-    private ExchangeTiles DoExchange()
+    public ExchangeTiles DoExchange()
     {
-        boolean[] choice = new boolean[handSize];
-        Arrays.fill(choice,true);
+        int [] letters = new int[26];
+        int [] temphand = new int[hand.size()];
+        int temp = 0;
+        int vcount = 0;
+        boolean[] choice = new boolean[hand.size()];
+
+        for (int i = 0; i < hand.size(); i++) {
+
+            temp = hand.get(i) - 'a';
+
+            temphand[i] = temp;
+            if (0 <= temp && temp <= 26) {
+                ++letters[temp];
+            }
+            if (isVowel(temp)){
+             ++vcount;
+            }
+        }
+
+        for (int i = 0; i < letters.length; i++) {
+                int dump = letters[i] - 1;
+                int j = 0;
+
+                while (dump > 0 && j<hand.size()){
+                    if (temphand[j] == i){
+                        choice[j]=true;
+                        --dump;
+                    }
+                    j++;
+                }
+
+        }
+        boolean problem = vcount>3;
+        int lowest =  Integer.MAX_VALUE;
+        int lowIndex = -1;
+        while (vcount!=3){
+            for (int i = 0; i < hand.size(); i++) {
+                if(temphand[i] != -2 && isVowel(temphand[i])==problem && searcher.getFreaqy(temphand[i])<lowest){
+                    lowest=searcher.getFreaqy(temphand[i]);
+                    lowIndex = i;
+
+                }
+            }
+            if (lowIndex>=0){
+                choice[lowIndex] = true;
+            }
+            vcount += problem ? -1 :1;
+        }
+
+        for (int i = 0; i < hand.size(); i++) {
+            if (temphand[i] == -2){
+                choice[i] = false;
+            }
+        }
+
+
 
         return new ExchangeTiles(choice);
+
+    }
+
+    public boolean isVowel(int letter) {
+        if (letter == 0 || letter == 4 || letter == 8 || letter == 14 || letter == 20){ //0, 4, 8, 14, 20
+            return true;
+        }
+        return false;
     }
 
     private boolean isAdjacent(int x, int y)

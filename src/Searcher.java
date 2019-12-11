@@ -315,6 +315,7 @@ public class Searcher
         }
     }
 
+
     class CompareStrings implements Comparator<String>
     {
         @Override
@@ -338,5 +339,11 @@ public class Searcher
         {
             return ScoreChar(c);
         }
+    }
+
+    public int getFreaqy(int index){
+
+        return trie.getFreaqy(index);
+
     }
 }

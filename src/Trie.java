@@ -8,6 +8,8 @@ public class Trie
     // what is everything the Trie will be used for?
     private Node head;
 
+    private int [] freqarr = new int[26];
+
     public Trie()
     {
         head = new Node('\0');
@@ -57,6 +59,8 @@ public class Trie
             n.children[letter] = insertHelp(s, ind + 1, n.children[letter]);
 
             n.children[letter].parent = n;
+
+            ++ freqarr [letter];
         }
         return n;
     }
@@ -90,6 +94,12 @@ public class Trie
 
 
         public Node GetParent() { return parent; }
+    }
+
+    public int getFreaqy(int index){
+
+        return freqarr[index];
+
     }
 }
 
