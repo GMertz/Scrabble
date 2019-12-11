@@ -13,121 +13,96 @@ public class Searcher
 {
     private Trie trie; // used for finding words
 
-    private char[] target; // word we are currently building
-    private int targetScore; // Score for the target word
+    private char[] current; // word we are currently building
 
-    private int targetLen; // Length of our desired word
+    private int maxLen; // Length of our desired word
 
-    private int reqChar; // index of character that needs to be in the word
+    private int reqChar; // index of the first character that needs to be in the word
 
-    PriorityQueue<Integer>[] charScores; // PriorityQueue used for traversing trie
+    private Stack<Integer>[] possibleChars; // PriorityQueue array used to assist with traversal
 
     private HashMap<Character, Integer> bag;
     private char[] template;
 
-    private int[][] evaluations; // Stores evaluations of characters (same dimension as charScores)
+    private int layer; // which letter of the word we are currently on
 
-    private int rowStart; // Start of our search (x)
-    private int colStart; // start of our search (y)
-    private boolean isHorizontal; // is our search horizontal?
+    private boolean[] layerVisited; // used to know if we have already calculated moves from a given character
 
-    private int layer; // which letter of the word are we currently looking for
+    private Stack<String> words; // words we have found that fit the template
+    private HashSet<String> wordLookup;
 
-    private Evaluator eval; //class used for evaluating characters
-
-    // used so we dont need to recalculate char scores for layers we have visited before
-    private boolean[] layerVisited;
-
-    private PriorityQueue<String> words; // words we have found that fit the template
-    private HashMap<String, Integer> wordScores; // scores for words above
-
-    private String bestWord;
-    /** save enable.txt to trie **/
+    /**
+     * Fill our trie with the dictionary
+     */
     public Searcher()
     {
-        eval = new SimpleScorer();
         trie = new Trie(new In("enable1.txt"));
     }
 
-    /** returns 'best' word **/
-    public String GetBestWord()
-    {
-        if(bestWord == null)
-        {
-            bestWord = words.poll();
-        }
-        return bestWord;
-    }
+    /**
+     * Used to get the frequency of a letter from our dictionary
+     * @param index index of the letter in the alphabet
+     * @return the amount of times this letter shows up in the dictionary
+     */
+    int GetFrequency(int index){ return trie.GetFrequency(index); }
 
-    /** returns 'best' score **/
-    public int GetBestScore()
-    {
-        if(bestWord == null)
-        {
-            bestWord = words.poll();
-        }
-        return wordScores.get(bestWord);
-    }
+    /**
+     * @return Stack of all words found during the search
+     */
+    Stack<String> GetAllWords() { return words; }
 
-
-    public boolean HasWords() { return !words.isEmpty(); }
+    /**
+     *
+     * @return were any words found during the search?
+     */
+    boolean HasWords() { return !words.isEmpty(); }
 
     /** prepares for a new search (initializes a lot of random stuff) **/
     private void init(char[] temp, ArrayList<Character> hand)
     {
         this.template = Arrays.copyOf(temp,temp.length);
-        reqChar = targetScore = -1;
+        reqChar = -1;
+        maxLen = template.length;
+        current = new char[maxLen];
+        layerVisited = new boolean[maxLen+1]; // we add one to simplify some operations later
+
+        possibleChars = new Stack[26];
+        words = new Stack<>();
+        wordLookup = new HashSet<>();
+
+        bag = new HashMap<>();
 
         for (int i = 0; i < template.length; i++)
         {
+            /*
+                if a character is '*' it means this character must be in the word for it to connect to some
+                other part of the board. We only need to care about the first of such characters
+            */
             if (template[i] == '*')
             {
                 template[i] = '_';
                 if(reqChar == -1) reqChar = i;
             }
-
-            template[i] = Character.toLowerCase(template[i]);
+            template[i] = Character.toLowerCase(template[i]);// Lowercase all chars to simplify conversions later on
         }
 
-        targetLen = template.length;
-        target = new char[targetLen];
-
-        bag = new HashMap<>();
-
+        // Initialize our bag
         for (char c : hand)
         {
             c = Character.toLowerCase(c);
             if(bag.containsKey(c)) bag.replace(c, bag.get(c)+1);
             else bag.put(c,1);
         }
-
-        layerVisited = new boolean[targetLen+1];
-        evaluations = new int[targetLen][26];
-
-        charScores = new PriorityQueue[targetLen];
-
-        for (int i = 0; i < targetLen; i++)
-        {
-            Arrays.fill(evaluations[i], -1);
-        }
-
-        words = new PriorityQueue<>(new CompareStrings());
-        wordScores = new HashMap<>();
-        bestWord = null;
     }
 
     /**
      * @param template template string used for search. Words found will conform to this template
+     *                 '_' characters in this string will be filled with a character contained in hand,
+     *                 and at least one character marked '*' will be included in any word.
      * @param hand characters that we can use to build words
-     * @param searchStart start location of search
-     * @param direction direction of search
      */
-    public void search(char[] template, ArrayList<Character> hand, Location searchStart, Location direction)
+    public void search(char[] template, ArrayList<Character> hand)
     {
-        rowStart = searchStart.getRow();
-        colStart = searchStart.getColumn();
-        isHorizontal = (direction == Location.HORIZONTAL);
-
         init(template,hand);
         searchHelp();
     }
@@ -139,48 +114,46 @@ public class Searcher
     {
         // trav is used to traverse the Trie
         Trie.Node trav = trie.GetHead();
-        char tempC;
+        char tempC; //simply a scratch variable
 
         while(true)
         {
-            if(trav.IsWord()) // word has been found!
+            if(trav.IsWord()) // if we find a word, add it
             {
                 AddWord();
             }
-            if(layer == targetLen) // if we are at our max length
+
+            if(layer == maxLen)
             {
-                if(layer == 0) return;
                 DecrementLayer();
                 trav = trav.GetParent();
             }
-            else if (template[layer] == '_')
+            else if (template[layer] == '_') // the next character needs to come from our hand
             {
                 if (!layerVisited[layer])
                 {
-                    ScoreLetters(trav);  // fill charScores with possible next letters
-                    layerVisited[layer] = true;
+                    FindViableChildren(trav);  // fill charScores with possible next letters
                 }
-                if(charScores[layer].isEmpty()) // if there are no possible paths to take
+                if(possibleChars[layer].isEmpty()) // if there are no possible paths to take
                 {
-                    if(layer == 0) return;
+                    if(layer == 0) return; // We have exhausted our search
                     DecrementLayer();
                     trav = trav.GetParent();
                 }
                 else // continue to the next character
                 {
-                    int val = charScores[layer].poll(); // Add the highest value character
-
+                    int val = possibleChars[layer].pop(); // traverse to a character
                     IncrementLayer(val);
                     trav = trav.GetChild(val);
                 }
             }
-            else // If there is a specified letter in the template
+            else // If there is a letter specified in the template
             {
                 tempC = template[layer];
 
                 if (trav.GetChild(tempC) == null || layerVisited[layer])
                 {
-                    if(layer == 0) return;
+                    if(layer == 0) return; // We have exhausted our search
                     DecrementLayer();
                     trav = trav.GetParent();
                 }
@@ -193,27 +166,26 @@ public class Searcher
         }
     }
 
-    private void evaluate(int a)
+    /**
+     * given our hand, calculate all children that can be traversed to
+     * @param trav our current Trie traversal node
+     */
+    private void FindViableChildren(Trie.Node trav)
     {
-        if(evaluations[layer][a] == -1)
-        {
-            int sA, row = rowStart, col = colStart;
-            if (isHorizontal) col += layer;
-            else row += layer;
+        layerVisited[layer] = true;
+        possibleChars[layer] = new Stack<>();
 
-            sA = eval.charEval((char) ('a' + a), row, col, isHorizontal);
-            evaluations[layer][a] = sA;
-        }
-    }
-
-    private void ScoreLetters(Trie.Node trav)
-    {
-        charScores[layer] = new PriorityQueue<Integer>(26, new CompareScores());
+        // scratch variables
         Trie.Node tempNode;
         int t;
+
+        //for each character in the hand, see if we can add it to current word
         for (Character piece : bag.keySet())
         {
+            // character is in bag but we have already used it in current word
             if(bag.get(piece) <= 0) continue;
+
+            // if its a space (wildcard), add all characters
             if (piece == '_')
             {
                 for (int i = 0; i < 26; i++)
@@ -222,8 +194,7 @@ public class Searcher
                     if (tempNode != null)
                     {
                         t = lowerCaseToInt(tempNode.Get());
-                        evaluate(t);
-                        charScores[layer].add(t);
+                        possibleChars[layer].push(t);
                     }
                 }
                 break;
@@ -234,18 +205,21 @@ public class Searcher
                 if (tempNode != null)
                 {
                     t = lowerCaseToInt(tempNode.Get());
-                    evaluate(t);
-                    charScores[layer].add(t);
+                    possibleChars[layer].add(t);
                 }
             }
         }
     }
 
+    /**
+     * Back track to the previous character in our search. This happens when we have exhausted all possibilities
+     * for the current word
+     */
     private void DecrementLayer()
     {
         layerVisited[layer] = false;
         layer -= 1;
-        char tempC = Character.toLowerCase(target[layer]);
+        char tempC = Character.toLowerCase(current[layer]);
 
         if (!Player.isLetter(template[layer]))
         {
@@ -258,28 +232,29 @@ public class Searcher
                 bag.replace('_', bag.get('_') + 1);
             }
         }
-        targetScore -= evaluations[layer][lowerCaseToInt(tempC)];
     }
 
-    // Increment with a static letter
+    /**
+     * Traverse deeper into our search
+     * @param c character that is specified in the template
+     */
     private void IncrementLayer(char c)
     {
-        int val = lowerCaseToInt(c);
-
         layerVisited[layer] = true;
-        target[layer] = c; // add letter to our template
-        evaluations[layer][val] = ScoreChar(c);
-        targetScore += evaluations[layer][val];
+        current[layer] = c; // add letter to our template
 
         layer += 1;
     }
 
-    // Increment with a letter from hand
+    /**
+     * Traverse deeper into our search
+     * @param val the alphabetical index of the letter to traverse to
+     */
     private void IncrementLayer(int val)
     {
         char let = (char)('a'+val);
 
-        // if letter is in our hand (bag) then decrement it, otherwise decrement '_'
+        // if letter is in our hand (bag) then decrement it, otherwise we must be using our blank '_'
         if (bag.containsKey(let))
         {
             bag.replace(let, bag.get(let)-1);
@@ -287,74 +262,42 @@ public class Searcher
         else
         {
             bag.replace('_', bag.get('_')-1);
-            let = Character.toUpperCase(let);
+            let = Character.toUpperCase(let); // if we're using our blank then uppercase it
         }
 
-        target[layer] = let; // add letter to our template
-        targetScore += evaluations[layer][val];
+        current[layer] = let; // add letter to our current search
         layer += 1;
     }
 
     private int lowerCaseToInt(char c) { return c-'a'; }
 
+    /**
+     * Add the word in 'current' (up to length 'layer') to our found words stack if possible.
+     * If the word does not fulfill a few conditions it will not be added
+     */
     private void AddWord()
     {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < layer; ++i)
         {
-            sb.append(template[i] =='_'? target[i] : ' ');
+            sb.append(template[i] =='_'? current[i] : ' ');
         }
 
         String s = sb.toString();
-        if (layer <= reqChar || wordScores.containsKey(s) || ((layer < targetLen-1) && template[layer+1] != '_'))
+
+        /*
+            Conditions that stop us from adding a word at this point:
+                1. Our word doesnt contain the first reqChar -> this means the word is not attached to anything.
+                2. We have already added the word.
+                3. The character below us is in the template. If we allow such a word it is highly likely it is invalid
+         */
+        if (layer <= reqChar || wordLookup.contains(s) || ((layer < maxLen-1) && template[layer+1] != '_'))
         {
             return;
         }
-        wordScores.put(s,targetScore);
+
+        wordLookup.add(s); // add word so we dont add it again
         words.add(s);
-        //StdOut.printf("Found Word: |%s| ",);
-    }
-
-
-    class CompareScores implements Comparator<Integer>
-    {
-        @Override
-        public int compare(Integer a, Integer b)
-        {
-            return evaluations[layer][b] - evaluations[layer][a];
-        }
-    }
-
-
-    class CompareStrings implements Comparator<String>
-    {
-        @Override
-        public int compare(String a, String b) { return wordScores.get(b) - wordScores.get(a); }
-    }
-
-    private static int ScoreChar(char c)
-    {
-        return Board.TILE_VALUES.get(c);
-    }
-
-    public interface Evaluator
-    {
-        int charEval(char c, int row, int col, boolean horizontal);
-    }
-
-    public static class SimpleScorer implements Evaluator
-    {
-        @Override
-        public int charEval(char c, int row, int col, boolean horizontal)
-        {
-            return ScoreChar(c);
-        }
-    }
-
-    public int GetFrequency(int index){
-
-        return trie.GetFrequency(index);
-
     }
 }

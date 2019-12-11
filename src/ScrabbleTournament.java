@@ -1,5 +1,7 @@
 /** A tournament between ScrabbleAIs. Edit the constructor to change the contestants. */
 public class ScrabbleTournament {
+    static int totalRuns = 1000;
+    double totalScore;
 
     /** Contestants. */
     private ScrabbleAI[] players;
@@ -13,7 +15,20 @@ public class ScrabbleTournament {
     }
 
     public static void main(String[] args) throws IllegalMoveException {
-        new ScrabbleTournament().run();
+        double score = 0;
+        for (int i = 0; i < totalRuns; i++)
+        {
+            if(i%30 == 0)
+            {
+                StdOut.printf("Starting %dth run\n",i);
+            }
+            ScrabbleTournament tourn = new ScrabbleTournament();
+            tourn.run();
+            score+=tourn.totalScore;
+        }
+        StdOut.printf("Average Combined score after %d runs: %.4f",totalRuns, score/((double)totalRuns));
+        StdOut.printf("Average Single score after %d runs: %.4f",totalRuns, score/((double)totalRuns*2));
+
     }
 
     /**
@@ -32,7 +47,7 @@ public class ScrabbleTournament {
             }
         }
         for (int i = 0; i < players.length; i++) {
-            StdOut.println(players[i].toString() + ": " + scores[i]);
+            //StdOut.println(players[i].toString() + ": " + scores[i]);
         }
     }
 
@@ -41,7 +56,7 @@ public class ScrabbleTournament {
      * {0, 1}, or {0.5, 0.5}.
      */
     public double[] playGame(ScrabbleAI a, ScrabbleAI b) throws IllegalMoveException {
-        StdOut.println(a + " vs " + b + ":");
+        //StdOut.println(a + " vs " + b + ":");
         Board board = new Board();
         a.setGateKeeper(new GateKeeper(board, 0));
         b.setGateKeeper(new GateKeeper(board, 1));
@@ -53,9 +68,12 @@ public class ScrabbleTournament {
         }
         int s0 = board.getScore(0);
         int s1 = board.getScore(1);
-        StdOut.print(board);
-        StdOut.println("Final score: " + a + " " + s0 + ", " + b + " " + s1);
-        StdOut.println();
+
+        //StdOut.print(board);
+        //StdOut.println("Final score: " + a + " " + s0 + ", " + b + " " + s1);
+        //StdOut.println();
+        totalScore += (s0 + s1)/2;
+
         if (s0 > s1) {
             return new double[] {1, 0};
         } else if (s0 < s1) {

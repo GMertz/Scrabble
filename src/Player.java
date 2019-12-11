@@ -107,16 +107,18 @@ public class Player implements ScrabbleAI
                         if(i == 0 || window[i-1] == '_' || window[i-1] == '*' )
                         {
                             square = new Location(x,y);
-                            searcher.search(createTemplate(window, i), hand, square ,direction);
+                            searcher.search(createTemplate(window, i), hand);
                             if (searcher.HasWords())
                             {
-                                WordChoice wc = new WordChoice(searcher.GetBestWord(), searcher.GetBestScore(), square, direction);
-                                maxHeap.add(wc);
+                                for (String s : searcher.GetAllWords())
+                                {
+                                    maxHeap.add(new WordChoice(s, square, direction));
+                                }
                             }
                         }
                         if (!(window[i] == '_' || window[i] == '*')) letters--;
                         if (validSpots[x][y]) adjacents --;
-                    }while(++i < Board.WIDTH);
+                    }while(++i < Board.WIDTH-2);
 
                 }
         }
@@ -321,7 +323,7 @@ public class Player implements ScrabbleAI
         private Location start;
         private Location dir;
 
-        public WordChoice(String s, int score, Location start, Location direction)
+        public WordChoice(String s, Location start, Location direction)
         {
             string = s;
             this.score = gateKeeper.score(s,start,direction);
