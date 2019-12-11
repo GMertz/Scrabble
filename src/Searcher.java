@@ -76,6 +76,7 @@ public class Searcher
     public PriorityQueue<String> GetAllWords() { return words; }
     public HashMap<String,Integer> GetAllWordScores() { return wordScores; }
     public boolean HasWords() { return !words.isEmpty(); }
+    public boolean IsWord(String s){return trie.contains(s);}
 
     /** prepares for a new search (initializes a lot of random stuff) **/
     private void init(char[] temp, ArrayList<Character> hand)
@@ -196,7 +197,7 @@ public class Searcher
             if (isHorizontal) col += layer;
             else row += layer;
 
-            sA = eval.charEval((char) ('a' + a),row, col, isHorizontal);
+            sA = eval.charEval((char) ('a' + a),row, col, isHorizontal, false);
             evaluations[layer][a] = sA;
         }
     }

@@ -361,7 +361,22 @@ public class Player implements ScrabbleAI
             {
                 templates[index] = perpendicularTemplate(row,col,isHorizontal? Location.HORIZONTAL: Location.VERTICAL);
             }
-            else if (templates[index] == [""])
+
+            int wordModifier=0;
+            char[] temp = templates[index];
+            if (temp.length != 1)
+            {
+                int i = temp[0];
+                StringBuilder sb  = new StringBuilder(temp.length-1);
+                for (int j = 1; j < temp.length; j++)
+                {
+                    if (temp[i] == ' ') sb.append(c);
+                    else sb.append(temp[i]);
+                }
+
+                String s = sb.toString();
+                if (gateKeeper.score())
+            }
 
 
             // Takes into account special tiles (double letter, triple letter),
