@@ -198,7 +198,7 @@ public class Player implements ScrabbleAI
 
 
         return new ExchangeTiles(choice);
-        
+
     }
 
     public boolean isVowel(int letter) {
