@@ -286,12 +286,6 @@ public class Searcher
         wordScores.put(s,targetScore);
         words.add(s);
     }
-
-    public int getFreaqy(int index){
-
-        return trie.getFreaqy(index);
-
-    }
     class CompareScores implements Comparator<Integer>
     {
         @Override
@@ -300,6 +294,7 @@ public class Searcher
             return evaluations[layer][b] - evaluations[layer][a];
         }
     }
+
 
     class CompareStrings implements Comparator<String>
     {
@@ -324,5 +319,11 @@ public class Searcher
         {
             return ScoreChar(c);
         }
+    }
+
+    public int getFreaqy(int index){
+
+        return trie.getFreaqy(index);
+
     }
 }

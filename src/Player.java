@@ -15,7 +15,7 @@ public class Player implements ScrabbleAI
     private GateKeeper gateKeeper;
     private Searcher searcher;
 
-    public ArrayList<Character> hand;
+    private ArrayList<Character> hand;
     private int handSize;
 
     public Player()
@@ -132,8 +132,9 @@ public class Player implements ScrabbleAI
             3. If no moves were found, shuffle letters
          */
         // if no move has been found, exchange letters, otherwise return the best move
-       /** uncomment after testing  if (maxHeap.isEmpty()) return DoExchange();
-        **/return maxHeap.poll().publish();
+
+        if (maxHeap.isEmpty()) return DoExchange();
+        return maxHeap.poll().publish();
     }
 
     // this could probably be improved by throwing out certain letters over others
