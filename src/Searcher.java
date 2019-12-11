@@ -121,6 +121,7 @@ public class Searcher
         bestWord = null;
     }
 
+    /** search through rows and columns, call init and searchHelp **/
     public void search(char[] template, ArrayList<Character> hand, Location searchStart, Location direction)
     {
         rowStart = searchStart.getRow();
@@ -131,6 +132,7 @@ public class Searcher
         searchHelp();
     }
 
+    /** **/
     private void searchHelp()
     {
         Trie.Node trav = trie.GetHead();
@@ -189,6 +191,7 @@ public class Searcher
         }
     }
 
+    /** **/
     private void evaluate(int a)
     {
         if(evaluations[layer][a] == -1)
@@ -202,6 +205,7 @@ public class Searcher
         }
     }
 
+    /** Score letters to determine which to play **/
     private void ScoreLetters(Trie.Node trav)
     {
         charScores[layer] = new PriorityQueue<Integer>(26, new CompareScores());
