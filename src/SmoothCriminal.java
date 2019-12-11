@@ -731,12 +731,5 @@ public class SmoothCriminal implements ScrabbleAI
             words.add(s);
         }
     }
-
-
-
-
-
-
-
 }
 

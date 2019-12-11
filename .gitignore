@@ -4,4 +4,10 @@ enable1.txt
 stdlib.jar
 _config.yml
 out
+test/*
+src/Player.java
+src/Searcher.java
+src/Trie.java
+
+
 

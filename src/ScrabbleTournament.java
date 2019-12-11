@@ -1,6 +1,6 @@
 /** A tournament between ScrabbleAIs. Edit the constructor to change the contestants. */
 public class ScrabbleTournament {
-    static int totalRuns = 100;
+    static int totalRuns = 10;
     double ourScore = 0;
     double petesScore = 0;
 
@@ -29,7 +29,7 @@ public class ScrabbleTournament {
             scoreUs += tourn.ourScore;
             scoreThem += tourn.petesScore;
         }
-        StdOut.printf("Average score (Ours vs Theirs) after %d runs: %.4f vs %.4f ",totalRuns, scoreUs/totalRuns, scoreThem/totalRuns);
+        //StdOut.printf("Average score (Ours vs Theirs) after %d runs: %.4f vs %.4f ",totalRuns, scoreUs/totalRuns, scoreThem/totalRuns);
 
     }
 
@@ -71,11 +71,9 @@ public class ScrabbleTournament {
         int s0 = board.getScore(0);
         int s1 = board.getScore(1);
 
-        //StdOut.print(board);
-        //StdOut.println("Final score: " + a + " " + s0 + ", " + b + " " + s1);
-        //StdOut.println();
-        ourScore += s0;
-        petesScore += s1;
+        StdOut.print(board);
+        StdOut.println("Final score: " + a + " " + s0 + ", " + b + " " + s1);
+        StdOut.println();
 
         if (s0 > s1) {
             return new double[] {1, 0};
